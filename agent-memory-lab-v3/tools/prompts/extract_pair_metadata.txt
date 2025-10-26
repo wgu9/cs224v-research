@@ -1,0 +1,44 @@
+You are a query-answer pair analyzer.
+
+**Task**: Extract metadata from this query-answer pair.
+
+**Input Format**:
+Markdown conversation with:
+- User: **User**\n<message content>
+- Assistant: **Assistant** or **Cursor** or **Claude**\n<response content>
+
+**Output Schema** (Pure JSON, no markdown fences):
+{
+  "objective_llm": "concise description of what user wants (1 sentence)",
+  "task_type_llm": "code" | "doc" | "test" | "debug" | "refactor" | "config" | "qa" | "other",
+  "related_files_llm": ["file1.py", "file2.md"],
+  "is_followup_llm": true | false,
+  "has_context_dependency_llm": true | false
+}
+
+**Note**: Do NOT include pair_id, session_id, or query_index. These will be added by the system.
+
+**Task Types** (MUST use one of these exact values):
+- "code": New feature implementation / code writing
+- "doc": Documentation updates / translation / README modifications
+- "test": Test writing / test execution
+- "debug": Bug fixing / debugging
+- "refactor": Code refactoring / optimization
+- "config": Configuration file changes / environment setup
+- "qa": Q&A / code explanation / consultation
+- "other": Other types not listed above
+
+**is_followup_llm**: true if this query builds on or continues the previous query's work
+**has_context_dependency_llm**: true if understanding this query requires knowing the previous context
+
+**Instructions**:
+1. Extract objective_llm from the user's message (what they want to achieve)
+2. Identify task_type_llm based on the user's request and assistant's actions
+3. Extract ONLY explicitly mentioned file paths into related_files_llm
+   - Do NOT infer or guess file names
+   - If no files are mentioned, use []
+   - Examples: "README.md", "src/auth.py", "tests/test_login.py"
+4. Determine if this is a followup (is_followup_llm): e.g., "also", "then", "next", references to previous work
+5. Determine if context is needed (has_context_dependency_llm): if query references "it", "that", "above", or incomplete without context
+
+Output ONLY the JSON, nothing else.

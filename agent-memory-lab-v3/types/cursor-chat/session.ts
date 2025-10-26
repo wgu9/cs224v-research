@@ -14,7 +14,7 @@ export interface SessionMetadata {
   session_id: string;              // 唯一标识，格式：s_<timestamp>_<source>_<seq>
                                    // 示例："s_20251026_cursor_001"
 
-  source: string;                  // 对话来源："cursor" | "claude" | "aider"
+  source: string;                  // 对话来源："cursor" | "claude" | "aider" 默认是cursor 我们目前只负责cursor
 
   // Cursor导出信息（从文件头部提取）
   conversation_title?: string;     // 对话标题（第1行的# ...）
@@ -33,12 +33,16 @@ export interface SessionMetadata {
   total_queries: number;           // user query总数，如 50
   total_turns: number;             // 总轮次（user + assistant），如 100
 
+  // LLM配置
+  model?: string;                  // LLM模型名称，默认："auto"
+  max_mode?: string;               // 最大模式，默认："No"
+
   // 上下文信息（LLM提取）
-  project_context?: string;        // 项目上下文描述
+  project_context_llm?: string;    // 项目上下文描述（LLM生成）
                                    // 示例："Python web API project with authentication"
-  overall_objective?: string;      // 整体目标，跨所有queries的总结
+  overall_objective_llm?: string;  // 整体目标，跨所有queries的总结（LLM生成）
                                    // 示例："Add authentication and internationalization features"
-  tags?: string[];                 // 标签，用于分类和检索
+  tags_llm?: string[];             // 标签，用于分类和检索（LLM生成）
                                    // 示例：["authentication", "i18n", "refactoring"]
 
   // 扩展字段

@@ -1,0 +1,52 @@
+You are a goal.json generator for code agent monitoring.
+
+**Task**: Analyze this query-answer pair and generate a goal.json file.
+
+**Input Format**:
+Markdown conversation with:
+- User: **User**\n<message content>
+- Assistant: **Assistant** or **Cursor** or **Claude**\n<response content>
+
+**Output Schema** (Pure JSON, no markdown fences):
+{
+  "objective": "string",
+  "allowed_paths": ["string"],
+  "forbidden_paths": ["string"],
+  "required_tests": ["string"]
+}
+
+**Note**: Do NOT include run_id or checkpoints. These will be added by the system.
+- run_id format: "{session_id}_q{query_index:02d}"
+- checkpoints always: ["reproduce", "modify", "test", "regress"]
+
+**Path Pattern Examples**:
+- Single file: `"README.md"`
+- Directory: `"src/**"` (all files under src/)
+- File type: `"*.py"` (all Python files)
+- Specific subdirectory: `"src/auth/**"` (all files under src/auth/)
+- Multiple patterns: `["src/**/*.py", "tests/**/*.py", "README.md"]`
+
+**Inference Rules**:
+
+1. **objective**: Extract the main task from user's message (1 sentence)
+
+2. **allowed_paths**: Infer which files the agent is allowed to modify
+   - Doc-only task (translate/docs) → ["README.md", "docs/**"]
+   - Code task → explicitly mentioned source files or directories
+   - If unclear → infer from context (e.g., ["src/**", "*.py"] for Python projects, ["*.md"] for docs)
+   - AVOID ["**"] unless user explicitly says "all files"
+
+3. **forbidden_paths**: Include ONLY if:
+   - User explicitly says "don't change X"
+   - Doc-only task → forbid code/dependencies: ["requirements.txt", "setup.py", "src/**", "*.lock"]
+
+4. **required_tests**: Extract test command names
+   - "pytest -k X" → ["X"]
+   - "npm test" → ["test"]
+   - If no tests mentioned → []
+
+**Task Type Detection**:
+- Doc-only: keywords "translate", "docs", "README", "documentation" → strict allowed_paths
+- Code: everything else → more permissive
+
+Output ONLY the JSON, nothing else.

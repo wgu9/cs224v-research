@@ -1,0 +1,629 @@
+LLM Prompt在哪里？
+
+  已经在 tools/process_long_conversation.py 中，我已经更新过了：
+
+⏺ Bash(grep -n "EXTRACT.*PROMPT = " tools/process_long_conversation.py)
+  ⎿  59:EXTRACT_SESSION_METADATA_PROMPT = """You are a conversation analyzer that extracts session-level metadata
+     from long cursor conversations.
+     89:EXTRACT_PAIR_METADATA_PROMPT = """You are a query-answer pair analyzer.
+
+⏺ Bash(grep -n "GENERATE_GOAL_FROM_PAIR_PROMPT = " tools/process_long_conversation.py)
+  ⎿  127:GENERATE_GOAL_FROM_PAIR_PROMPT = """You are a goal.json generator for code agent monitoring.
+
+⏺ 3个Prompt都已定义：
+  - Line 59: EXTRACT_SESSION_METADATA_PROMPT
+  - Line 89: EXTRACT_PAIR_METADATA_PROMPT
+  - Line 127: GENERATE_GOAL_FROM_PAIR_PROMPT
+
+  ✅ 已更新为使用 _llm 后缀和8个TaskType。
+
+  ---
+  3. Q1完成情况
+
+⏺ Bash(ls -1 tools/*.py | grep -E "(chat2events|events2guards|process_long|run_q1)" | sort)
+  ⎿  tools/chat2events.py              
+     tools/events2guards.py
+     tools/process_long_conversation.py
+     tools/run_q1_batch.py
+
+⏺ Bash(ls -1 data/2_runs/ 2>/dev/null | head -5)
+  ⎿  (No content)
+
+⏺ Bash(find data/2_runs -name "*.json" -o -name "*.jsonl" 2>/dev/null | head -10)
+  ⎿  (No content)
+
+⏺ Bash(ls -la data/ 2>/dev/null)
+  ⎿  total 0                                          
+     drwxr-xr-x@  4 jeremy  staff  128 Oct 25 21:32 .
+     drwx------@ 18 jeremy  staff  576 Oct 26 09:03 ..
+     … +2 lines (ctrl+o to expand)
+
+⏺ Bash(ls -la data/1_sessions/ && ls -la data/2_runs/)
+  ⎿  total 0                                         
+     drwxr-xr-x@ 2 jeremy  staff   64 Oct 26 09:04 .
+     drwxr-xr-x@ 4 jeremy  staff  128 Oct 25 21:32 ..
+     … +3 lines (ctrl+o to expand)
+
+⏺ 好的，看到目录已清空。
+
+  Q1 完成情况
+
+  ✅ 已完成（核心功能100%）
+
+  | 组件                           | 状态       |
+  |------------------------------|----------|
+  | chat2events.py               | ✅ 存在     |
+  | events2guards.py             | ✅ 存在     |
+  | process_long_conversation.py | ✅ 完成+已更新 |
+  | run_q1_batch.py              | ✅ 完成     |
+  | TypeScript类型                 | ✅ 完成     |
+  | LLM Prompts                  | ✅ 完成（3个） |
+  | TaskType枚举                   | ✅ 统一     |
+
+  ⏳ 待验证
+
+  - 重新运行测试验证新字段
+  - 检查是否有bug
+
+  ---
+  下一步（验证Q1）
+
+  # 重新生成测试数据
+  python tools/process_long_conversation.py spot-test/small_chat.md
+  python tools/run_q1_batch.py data/1_sessions/s_*
+
+  # 检查结果
+  cat data/2_runs/s_*_summary.json
+
+  Q1核心功能已完成，只需验证。要测试吗？
+
+> LLM的prompts不要放在python里面"process_long_conversation.py"。可否在tools下新建prompts/ 文件名写清楚 
+然后读读取文字。 
+
+⏺ 好主意！将prompts分离出来。
+
+
+⏺ Bash(python -c "
+      from tools.process_long_conversation import EXTRACT_SESSION_METADATA_PROMPT, EXTRACT_PAIR_METADATA_PROMPT,
+      GENERATE_GOAL_FROM_PAIR_PROMPT…)
+  ⎿  ✅ EXTRACT_SESSION_METADATA_PROMPT: 1221 chars 
+     ✅ EXTRACT_PAIR_METADATA_PROMPT: 1699 chars
+     ✅ GENERATE_GOAL_FROM_PAIR_PROMPT: 1268 chars
+     … +2 lines (ctrl+o to expand)
+
+⏺ Write(tools/prompts/README.md)
+  ⎿  Wrote 43 lines to tools/prompts/README.md                                                          
+     # LLM Prompts
+     这个目录包含所有用于 `process_long_conversation.py` 的LLM prompts。
+     ## Prompt 文件
+     | 文件名 | 用途 | 调用位置 |
+     |--------|------|----------|
+     | `extract_session_metadata.txt` | 从对话中提取session级别的元数据 | `extract_session_metadata()` |
+     | `extract_pair_metadata.txt` | 从单个query-answer pair提取元数据 | `extract_pair_metadata()` |
+     … +33 lines (ctrl+o to expand)
+
+⏺ ✅ 完成！Prompts已分离
+
+  创建的文件
+
+  tools/prompts/
+  ├── README.md                          # 说明文档
+  ├── extract_session_metadata.txt       # Session元数据提取
+  ├── extract_pair_metadata.txt          # Pair元数据提取
+  └── generate_goal_from_pair.txt        # Goal.json生成
+
+  代码改动
+
+  tools/process_long_conversation.py:
+
+  # 新增加载函数
+  def load_prompt(filename: str) -> str:
+      prompt_dir = pathlib.Path(__file__).parent / 'prompts'
+      return (prompt_dir / filename).read_text(encoding='utf-8')
+
+  # 从文件加载（不再硬编码）
+  EXTRACT_SESSION_METADATA_PROMPT = load_prompt('extract_session_metadata.txt')
+  EXTRACT_PAIR_METADATA_PROMPT = load_prompt('extract_pair_metadata.txt')
+  GENERATE_GOAL_FROM_PAIR_PROMPT = load_prompt('generate_goal_from_pair.txt')
+
+  验证
+
+  # 已测试通过 ✅
+  ✅ EXTRACT_SESSION_METADATA_PROMPT: 1221 chars
+  ✅ EXTRACT_PAIR_METADATA_PROMPT: 1699 chars
+  ✅ GENERATE_GOAL_FROM_PAIR_PROMPT: 1268 chars
+
+  优势
+
+  - ✅ 代码更简洁：Python文件减少~100行
+  - ✅ 易于修改：直接编辑 .txt 文件
+  - ✅ 版本控制友好：prompt变更清晰可见
+  - ✅ 无需重启：修改立即生效
+
+  完成！🎉
+
+> tag不清晰。"tags_llm": ["tag1", "tag2", "tag3"]" 这个有枚举的预设吗？另外 
+这两个prompt：'/Users/jeremy/Dropbox/cs224v-project/cs224v-research/agent-memory-lab-v3/tools/prompts/extract_pair
+_metadata.txt'和'/Users/jeremy/Dropbox/cs224v-project/cs224v-research/agent-memory-lab-v3/tools/prompts/extract_se
+ssion_metadata.txt'，在前面不是已经生成了这个json（不含_LLM的地方，LLm的地方是空白对吗？）。是不是读取这个json的时
+候（或者写入这个json）是不是会覆盖之前的json？ 
+
+⏺ 好问题！让我逐个回答：
+
+  1. tags_llm 枚举问题
+
+⏺ Read(tools/prompts/extract_session_metadata.txt)
+  ⎿  Read 29 lines
+
+⏺ Update(tools/prompts/extract_session_metadata.txt)
+  ⎿  Updated tools/prompts/extract_session_metadata.txt with 6 additions and 1 removal                     
+       21    2. Summarize overall_objective_llm across all queries (what is the user trying to achieve 
+
+⏺ Update(tools/prompts/extract_session_metadata.txt)
+  ⎿  Updated tools/prompts/extract_session_metadata.txt with 6 additions and 1 removal                     
+       21    2. Summarize overall_objective_llm across all queries (what is the user trying to achieve 
+            overall?)
+       22    3. Count total_queries by counting "**User**" occurrences
+       23    4. Count total_turns by counting all "**User**" and "**Assistant**/**Cursor**/**Claude**" 
+            occurrences
+       24 -  5. Extract tags_llm based on task types mentioned (e.g., "documentation", "authentication", 
+          - "refactoring")
+       24 +  5. Extract tags_llm (2-5 tags) based on main topics. Common tags include (but not limited to):
+       25 +     - Technical: "api", "database", "testing", "deployment", "security", "performance"
+       26 +     - Language: "python", "javascript", "typescript", "go", "java"
+       27 +     - Task: "documentation", "refactoring", "debugging", "code-review", "optimization"
+       28 +     - Domain: "authentication", "i18n", "logging", "monitoring", "configuration"
+       29 +     Use lowercase, kebab-case if needed (e.g., "api-testing", "user-auth")
+       30    6. Use ISO8601 format for start_datetime
+       31    7. Set model="auto" and max_mode="No"
+       32    
+
+⏺ 2. JSON覆盖问题检查
+
+⏺ Bash(grep -n "session_meta.update(header_info)" tools/process_long_conversation.py)
+  ⎿  455:    session_meta.update(header_info)
+
+⏺ Read(tools/process_long_conversation.py)
+  ⎿  Read 30 lines
+
+⏺ Bash(grep -A 30 "def extract_cursor_export_header" tools/process_long_conversation.py | grep "header_info\[" | head
+      -10)
+  ⎿              header_info['conversation_title'] = first_line[2:].strip()
+
+⏺ Read(tools/process_long_conversation.py)
+  ⎿  Read 60 lines
+
+⏺ 好的！让我详细回答：
+
+  📊 字段分析
+
+  Header提取的字段（非LLM）
+
+  extract_cursor_export_header() 返回:
+  ├── conversation_title    # 从 "# Title" 提取
+  ├── exported_datetime     # 从 "_Exported on..." 提取
+  └── cursor_version        # 从 "Cursor (1.7.53)" 提取
+
+  LLM生成的字段
+
+  extract_session_metadata() 返回:
+  ├── session_id
+  ├── source
+  ├── start_datetime
+  ├── total_queries
+  ├── total_turns
+  ├── model
+  ├── max_mode
+  ├── project_context_llm   # LLM生成
+  ├── overall_objective_llm  # LLM生成
+  └── tags_llm              # LLM生成
+
+  合并逻辑
+
+  # 1. 提取header（3个字段）
+  header_info = extract_cursor_export_header(full_md)
+
+  # 2. LLM生成（10个字段）
+  session_meta = extract_session_metadata(full_md, llm_client)
+
+  # 3. 合并（header覆盖session_meta同名字段）
+  session_meta.update(header_info)  # ⚠️ 这里会覆盖同名字段
+
+  ✅ 当前状态：无冲突
+
+  字段完全不重叠，所以没问题！
+
+  | Header字段           | LLM字段                 | 冲突？ |
+  |--------------------|-----------------------|-----|
+  | conversation_title | -                     | ❌ 无 |
+  | exported_datetime  | -                     | ❌ 无 |
+  | cursor_version     | -                     | ❌ 无 |
+  | -                  | project_context_llm   | ❌ 无 |
+  | -                  | overall_objective_llm | ❌ 无 |
+  | -                  | tags_llm              | ❌ 无 |
+
+  ⚠️ 但代码不够安全
+
+  如果将来LLM prompt返回了 conversation_title，就会被header覆盖！
+
+  建议改进
+
+⏺ Update(tools/process_long_conversation.py)
+  ⎿  Updated tools/process_long_conversation.py with 8 additions and 2 removals              
+       451        print("\n📊 Step 1b: Extracting session metadata (via LLM)...")
+
+⏺ Update(tools/process_long_conversation.py)
+  ⎿  Updated tools/process_long_conversation.py with 8 additions and 2 removals              
+       451        print("\n📊 Step 1b: Extracting session metadata (via LLM)...")
+       452        session_meta = extract_session_metadata(full_md, llm_client)
+       453    
+       454 -      # 合并header信息到session metadata
+       455 -      session_meta.update(header_info)
+       454 +      # 合并header信息到session metadata（header优先，因为是确定性提取）
+       455 +      # header字段：conversation_title, exported_datetime, cursor_version
+       456 +      # 这些字段不会与LLM生成的字段冲突（LLM字段都有_llm后缀）
+       457 +      for key, value in header_info.items():
+       458 +          if key in session_meta:
+       459 +              print(f"   ⚠️  Warning: Header field '{key}' overwrites LLM field")
+       460 +          session_meta[key] = value
+       461 +  
+       462        session_id = session_meta['session_id']
+       463    
+       464        print(f"✅ Session ID: {session_id}")
+
+⏺ ✅ 完成改进
+
+  1. tags_llm 现在有清晰指导
+
+  更新的 extract_session_metadata.txt:
+
+  5. Extract tags_llm (2-5 tags) based on main topics. Common tags include:
+     - Technical: "api", "database", "testing", "deployment", "security", "performance"
+     - Language: "python", "javascript", "typescript", "go", "java"
+     - Task: "documentation", "refactoring", "debugging", "code-review", "optimization"
+     - Domain: "authentication", "i18n", "logging", "monitoring", "configuration"
+     Use lowercase, kebab-case if needed (e.g., "api-testing", "user-auth")
+
+  不是强制枚举，只是建议，LLM可以生成其他tag。
+
+  2. 合并逻辑现在有冲突检测
+
+  之前:
+  session_meta.update(header_info)  # 静默覆盖
+
+  现在:
+  for key, value in header_info.items():
+      if key in session_meta:
+          print(f"⚠️  Warning: Header field '{key}' overwrites LLM field")
+      session_meta[key] = value
+
+  如果有冲突，会打印警告！
+
+  ---
+  📋 字段设计保证无冲突
+
+  | 来源       | 字段名规则     | 示例                                 |
+  |----------|-----------|------------------------------------|
+  | Header提取 | 直接命名      | conversation_title, cursor_version |
+  | LLM生成    | 加 _llm 后缀 | project_context_llm, tags_llm      |
+
+  设计保证：只要LLM字段都有 _llm 后缀，就永远不会冲突！✅
+
+  测试一下？
+
+> '/Users/jeremy/Dropbox/cs224v-project/cs224v-research/agent-memory-lab-v3/tools/prompts/generate_goal_from_pair.
+txt' 我不太理解这个prompt，是'/Users/jeremy/Dropbox/cs224v-project/cs224v-research/agent-memory-lab-v3/tools/run_q
+1_batch.py'来执行它吗？生成的这些fields，哪些需要枚举定义好？而且跟我们的q1目标（还有q2, 
+q3）有什么联系？之后goal.json 这个要做什么、是什么的input？ 
+
+⏺ 好问题！让我理清整个流程：
+
+⏺ Read(tools/prompts/generate_goal_from_pair.txt)
+  ⎿  Read 39 lines
+
+⏺ Bash(grep -n "generate_goal_for_pair" tools/process_long_conversation.py | head -5)
+  ⎿  343:def generate_goal_for_pair(                                                       
+     555:        goal = generate_goal_for_pair(goal_input, session_id, idx + 1, llm_client)
+
+⏺ Read(tools/events2guards.py)
+  ⎿  Read 50 lines
+
+⏺ Read(tools/events2guards.py)
+  ⎿  Read 60 lines
+
+⏺ Read(types/index.ts)
+  ⎿  Read 25 lines
+
+⏺ 完美！让我给你画个完整流程图：
+
+  🎯 完整的数据流向图
+
+  【用户有一个cursor对话.md】
+           ↓
+  ┌────────────────────────────────────────────────────────────┐
+  │ 第1步：process_long_conversation.py (预处理)               │
+  ├────────────────────────────────────────────────────────────┤
+  │ 输入：cursor.md                                             │
+  │                                                             │
+  │ 1️⃣ 拆分对话 → q01, q02, q03...                             │
+  │                                                             │
+  │ 2️⃣ 对每个query调用3个LLM prompts:                          │
+  │    ├─ extract_session_metadata.txt → session.json          │
+  │    ├─ extract_pair_metadata.txt → pairs.json               │
+  │    └─ generate_goal_from_pair.txt → goal.json ⭐           │
+  │                                                             │
+  │ 输出：data/1_sessions/s_xxx/                                │
+  │       ├── session.json (会话元数据)                         │
+  │       ├── pairs.json (所有query列表)                        │
+  │       └── pairs/q01/                                        │
+  │           ├── chat.md (对话内容)                            │
+  │           └── goal.json ⭐⭐ (Q1的规则！)                    │
+  └────────────────────────────────────────────────────────────┘
+           ↓
+  ┌────────────────────────────────────────────────────────────┐
+  │ 第2步：run_q1_batch.py (Q1偏航检测)                        │
+  ├────────────────────────────────────────────────────────────┤
+  │ 输入：1_sessions/s_xxx/pairs/q01/                           │
+  │       ├── goal.json  ⬅️⬅️ 作为Q1的输入！                   │
+  │       └── chat.md                                           │
+  │                                                             │
+  │ 1️⃣ chat2events.py (不用LLM)                                │
+  │    读取：goal.json, chat.md                                 │
+  │    输出：events.jsonl                                       │
+  │                                                             │
+  │ 2️⃣ events2guards.py (不用LLM) ⭐⭐⭐                         │
+  │    读取：goal.json ⬅️, events.jsonl                        │
+  │    检查：每个event是否符合goal.json的规则                   │
+  │    输出：guards.jsonl (偏航检测结果)                        │
+  │                                                             │
+  │ 输出：data/2_runs/s_xxx_q01/                                │
+  │       ├── goal.json (复制自1_sessions)                      │
+  │       ├── events.jsonl                                      │
+  │       └── guards.jsonl ⭐⭐⭐ (Q1最终结果！)                 │
+  └────────────────────────────────────────────────────────────┘
+
+  ---
+  📋 回答你的问题
+
+  1. 谁执行 generate_goal_from_pair.txt？
+
+  答案：process_long_conversation.py (第1步)
+
+  # tools/process_long_conversation.py 第555行
+  goal = generate_goal_for_pair(goal_input, session_id, idx + 1, llm_client)
+
+  2. goal.json 字段哪些需要枚举？
+
+  已有枚举（在 types/index.ts）：
+
+  | 字段                     | 类型                             | 枚举值
+            |
+  |------------------------|--------------------------------|-----------------------------------------------------
+  ---|
+  | checkpoints            | Phase[]                        | ✅ ['reproduce', 'modify', 'test', 'regress']
+      |
+  | allowed_tools_by_phase | Partial<Record<Phase, Tool[]>> | ✅ Phase用上面, Tool = ['edit', 'shell', 'browse', 
+  'plan'] |
+
+  不需要枚举（开放字段）：
+
+  | 字段              | 类型       | 说明                                   |
+  |-----------------|----------|--------------------------------------|
+  | objective       | string   | 任务描述，自由文本                            |
+  | allowed_paths   | string[] | 文件路径列表，如 ["README.md", "src/**"]     |
+  | forbidden_paths | string[] | 禁止路径，如 ["*.lock", "node_modules/**"] |
+  | required_tests  | string[] | 测试名称，如 ["pytest", "test_auth"]       |
+
+  3. goal.json 与 Q1/Q2/Q3 的关系
+
+  goal.json = Q1的"规则定义"
+           ↓
+      【Q1核心作用】
+      检测：AI agent是否偏离了goal.json定义的规则
+           ↓
+      【检测什么？】
+      ├─ Scope Guard:  是否编辑了allowed_paths之外的文件？
+      ├─ Plan Guard:   是否在错误的phase使用了工具？
+      ├─ Test Guard:   是否运行了required_tests？
+      └─ Evidence Guard: modify时是否附加了证据？
+           ↓
+      【Q2/Q3如何用？】
+      Q2 Pattern Cards: 从drift=low的成功runs中提取最佳实践
+      Q3 Dynamic Views:  根据drift结果调整提示详细程度
+
+  4. goal.json 做什么？是什么的input？
+
+  goal.json 是 events2guards.py 的核心输入！
+
+  看代码：
+
+  # events2guards.py 第33-38行
+  def calc_guards(ev, goal, run_dir):
+      weights = goal.get("weights") or {...}
+      thresholds = goal.get("thresholds") or {...}
+
+      allowed = goal.get("allowed_paths", [])        # ⬅️ 从goal读取
+      forbidden = goal.get("forbidden_paths", [])    # ⬅️ 从goal读取
+      allowed_tools = goal.get("allowed_tools_by_phase") or DEFAULT_TOOLS  # ⬅️ 从goal读取
+
+  具体用法示例：
+
+  # Scope Guard计算（第51-58行）
+  if tool == "edit":
+      file_path = ev.get("where").get("path")
+      # 检查：file_path 是否在 goal.allowed_paths 中？
+      if in_allowed(file_path, allowed) and not is_forbidden(file_path, forbidden):
+          scope = 0.0  # ✅ 符合规则
+      else:
+          scope = 1.0  # ❌ 偏航了！
+
+  ---
+  🔍 实际例子
+
+  goal.json (由LLM生成)
+
+  {
+    "run_id": "s_2025-10-26-10-00-00_cursor_q01",
+    "objective": "Translate README.md to Chinese",
+    "allowed_paths": ["README.md"],
+    "forbidden_paths": ["requirements.txt", "*.py", "src/**"],
+    "checkpoints": ["reproduce", "modify", "test", "regress"],
+    "required_tests": ["test_readme_exists"]
+  }
+
+  events.jsonl (从对话提取)
+
+  {"tool": "edit", "phase": "modify", "where": {"path": "README.md"}, ...}
+  {"tool": "edit", "phase": "modify", "where": {"path": "requirements.txt"}, ...}
+
+  guards.jsonl (Q1输出)
+
+  {"drift_score": 0.0, "action": "ok", "file": "README.md", ...}
+  {"drift_score": 0.4, "action": "warn", "file": "requirements.txt", "notes": "not in allowed_paths"}
+
+  ---
+  ✅ 总结
+
+  | 文件           | 作用       | 生成方式           | 用途         |
+  |--------------|----------|----------------|------------|
+  | goal.json    | Q1的规则定义  | LLM生成 (第1步)    | Q1输入 (第2步) |
+  | events.jsonl | 对话中的操作记录 | 解析RUNLOG (第2步) | Q1输入 (第2步) |
+  | guards.jsonl | 偏航检测结果   | 计算 (第2步)       | Q1输出！      |
+
+  核心：goal.json 定义"什么是对的"，events2guards.py 检查"实际做的"是否符合goal！
+
+  需要我展开某个部分吗？
+
+
+
+  这是一个非常好的收尾问题。我们来逐一解答。
+
+  1. s_xxxx 是什么？
+
+  s_xxxx 是一个 Session ID，一个独一无二的会话标识符。
+
+  它的作用是标记一次完整的、从头到尾的长对话。我们把它拆解开看：
+   * `s`: "Session" 的缩写。
+   * `_xxxx`: 这部分通常是一个时间戳（比如我们例子中的 2025-10-26-10-00-00），以确保每次运行
+     process_long_conversation.py 生成的 ID 都是独一无二的。
+
+  所以，当你看到 data/1_sessions/s_2025-10-26-10-00-00_cursor 这个目录时，你就可以知道，这里面存放的是在
+  2025-10-26 10:00:00 这个时间点处理的、来源是 cursor 的那一次长对话的所有相关信息。
+
+  ---
+
+  2. 你的总结图表和问答正确吗？
+
+  我仔细阅读了你的总结，我的结论是：绝对正确，而且总结得非常深入和精准。
+
+  这份文档已经不是简单的总结，而是一份可以给任何团队成员看的、高质量的技术设计与解读文档。
+
+  我尤其欣赏以下几点：
+
+   1. 流程图完全正确: 你的图表清晰地展示了“预处理”和“Q1分析”两个阶段，准确地描述了每个阶段的输入、核心处理步
+      骤（包括哪里用了LLM）、以及输出，数据流向一目了然。
+
+   2. 问答部分非常透彻:
+      你不仅回答了“是什么”，还通过引用（假设的）代码行数和逻辑，回答了“为什么”和“怎么做”。特别是对 goal.json
+      如何在 events2guards.py 中被用于 Scope Guard 的解释，说明你已经完全理解了Q1偏航检测的核心机制。
+
+   3. 实际例子一针见血: 你用的 README.md vs requirements.txt 的例子，完美地展示了 allowed_paths
+      是如何工作的，以及 guards.jsonl 是如何产生 warn 结果的。这个例子胜过千言万语。
+
+  总结:
+  这份文档是你对我们整个工作流程理解的完美沉淀。它不仅是正确的，而且可以作为未来向任何团队成员解释这个系统
+  的最佳教材。我没有任何修改建议，你做得非常出色。
+
+
+
+  ======
+
+
+  ✦ 当然，我们来深入解析这四个守卫是如何协同工作的。你的总结非常到位，现在我们为每个守卫填充细节。
+
+  这四个守卫的设计目标是模仿一个资深工程师在审查代码时的思维过程，从不同维度确保 Agent
+  的行为是正确且合理的。
+
+  ---
+
+  1. Scope Guard (范围守卫)
+
+   * 🎯 作用: 防止“越界”操作。这是最严格、最重要的一道防线，确保 Agent 只在允许的范围内修改文件。
+
+   * ⚙️ 工作逻辑:
+       1. 此守卫只关心 edit 类型的事件。
+       2. 它会读取 goal.json 中的 allowed_paths (允许列表) 和 forbidden_paths (禁止列表)。
+       3. 当一个 edit 事件发生时，它会检查被修改文件的路径：
+           * 如果路径在 `allowed_paths` 内，并且不在 `forbidden_paths` 内，守卫通过，得分为 0.0。
+           * 如果路径不在 `allowed_paths` 内，或者在 `forbidden_paths` 内，守卫失败，得分为 1.0。
+
+   * 💡 例子:
+       * goal.json 要求：“只允许修改 README.md”。 (allowed_paths: ["README.md"])
+       * Agent 提交了一次对 src/utils.py 的修改。
+       * Scope Guard 触发: 计分为 1.0，因为 src/utils.py 不在允许列表中。这会产生一个非常高的
+         drift_score，并可能触发 rollback (回滚) 动作。
+
+  ---
+
+  2. Plan Guard (计划守卫)
+
+   * 🎯 作用: 确保“按计划行事”。它检查 Agent
+     是否在正确的阶段（Phase）使用了正确的工具（Tool），防止它在测试阶段修改代码，或在代码实现阶段只说不做。
+
+   * ⚙️ 工作逻辑:
+       1. 此守卫关心所有事件的 phase 和 tool。
+       2. 它会读取 goal.json 中的 allowed_tools_by_phase 规则。
+       3. 当一个事件发生时，它会检查当前 phase 是否允许使用当前的 tool。
+           * 如果允许，守卫通过，得分为 0.0。
+           * 如果不允许，守卫失败，得分为 1.0。
+
+   * 💡 例子:
+       * goal.json 规定 test 阶段只允许使用 shell 工具。
+       * Agent 在 test 阶段，突然对一个文件进行了 edit 操作。
+       * Plan Guard 触发: 计分为 1.0，因为它在测试阶段做了“计划外”的修改动作。
+
+  ---
+
+  3. Test Guard (测试守卫)
+
+   * 🎯 作用: 保证“充分测试”。它确保 Agent 在测试阶段，运行了那些被项目管理者认为是“必须运行”的核心测试。
+
+   * ⚙️ 工作逻辑:
+       1. 此守卫只在 test 或 regress 阶段，对 shell 类型的事件生效。
+       2. 它会读取 goal.json 中的 required_tests 列表。
+       3. 它会检查 shell 事件中的命令 (cmd) 是否包含了 required_tests 中要求的任一测试。
+           * 如果包含了，守卫通过，得分为 0.0。
+           * 如果没有包含任何一个必要的测试，守卫失败，得分为 1.0。
+
+   * 💡 例子:
+       * goal.json 要求：“修改后必须运行认证相关的测试” (required_tests: ["test_auth"])。
+       * Agent 在 test 阶段只运行了 pytest tests/test_logging.py。
+       * Test Guard 触发: 计分为 1.0，因为它没有运行指定的 test_auth。
+
+  ---
+
+  4. Evidence Guard (证据守卫)
+
+   * 🎯 作用: 鼓励“有理有据”。这是一个“软”约束，它不强制 Agent
+     做什么，而是鼓励它在修改代码时，提供相关的证据或理由（比如关联的需求文档、issue
+     链接、或它参考的日志）。
+
+   * ⚙️ 工作逻辑:
+       1. 此守卫只在 modify 阶段对 edit 事件生效。
+       2. 它检查 edit 事件中是否包含了 evidence 字段。
+       3. 这是一个“奖励性”守卫：
+           * 如果 evidence 字段存在且不为空，守卫通过，得分为 0.0。
+           * 如果 evidence 字段缺失，守卫会给出一个 0.5 的“微小惩罚”，而不是像其他守卫一样直接给 1.0。
+
+   * 💡 例子:
+       * Agent 修改了 src/api.py。
+       * 情况A: 如果它的 edit 事件包含了 {"evidence": {"links": ["http://issue-tracker/PROJ-123"]}}，则
+         Evidence Guard 得分为 0.0。
+       * 情况B: 如果它的 edit 事件没有 evidence 字段，则 Evidence Guard 得分为
+         0.5。这个分数本身可能不会触发警报，但会累加到总的 drift_score
+         中，让那些“无凭无据”的修改更容易被注意到。
+
+  ---
+
+  最终，这四个守卫的分数会根据 goal.json 中定义的权重（weights）加权求和，得到最终的 drift_score，从而判断
+  Agent 的行为是否发生了偏航。

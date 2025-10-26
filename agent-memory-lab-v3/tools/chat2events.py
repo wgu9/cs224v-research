@@ -30,6 +30,41 @@ FAILED_HINT = re.compile(r"\b(fail|failed|错误|失败)\b", re.IGNORECASE)
 # crude path pattern with common extensions
 FILE_PATH_RE = re.compile(r"([A-Za-z0-9_./-]+\.(py|md|rst|txt|json|yaml|yml|ini|cfg|toml|lock|ts|js|tsx|jsx|css|html))\b" )
 
+def infer_artifact_type(path: str) -> str:
+    """Infer artifact type from file extension."""
+    path_lower = path.lower()
+
+    # Test files (check first, before general code)
+    if any(pattern in path_lower for pattern in ['test_', '_test.', '.test.', '.spec.', 'test/', '/tests/']):
+        return 'test'
+
+    # Documentation
+    if path_lower.endswith(('.md', '.rst', '.txt', '.adoc')):
+        return 'doc'
+
+    # Configuration
+    if path_lower.endswith(('.json', '.yaml', '.yml', '.toml', '.ini', '.cfg', '.env', '.lock', '.config')):
+        return 'config'
+
+    # Code (default for common extensions)
+    if path_lower.endswith(('.py', '.js', '.ts', '.jsx', '.tsx', '.go', '.java', '.cpp', '.c', '.rs', '.rb', '.php', '.swift', '.kt', '.cs', '.html', '.css')):
+        return 'code'
+
+    return 'code'  # default
+
+def infer_operation(tool: str) -> str:
+    """Infer operation from tool type."""
+    if tool == 'edit':
+        return 'write'
+    elif tool == 'plan':
+        return 'plan'
+    elif tool == 'shell':
+        return 'run'
+    elif tool == 'browse':
+        return 'read'
+    else:
+        return 'write'  # default
+
 def find_runlog_block(text: str) -> Optional[str]:
     # detect fenced YAML runlog starting with 'RUNLOG:'
     m = re.search(r"RUNLOG:\s*(\n|\r|\r\n)([\s\S]+)", text, re.IGNORECASE)
@@ -164,9 +199,14 @@ def maybe_git_verify(extracted: Dict[str, Any], git_root: Optional[str]) -> Dict
 
 def changes_to_events(run_id: str, changes: List[Dict[str,Any]]) -> List[Dict[str,Any]]:
     evs = []; step = 0
+    total_files = len(changes)
+    scope = 'file' if total_files == 1 else 'multi_file'
+
     for ch in changes:
         status = ch.get('status','planned')
         tool = 'edit' if status=='applied' else 'plan'
+        path = ch.get('path', '')
+
         step += 1
         evs.append({
             "id": str(uuid.uuid4()),
@@ -175,10 +215,15 @@ def changes_to_events(run_id: str, changes: List[Dict[str,Any]]) -> List[Dict[st
             "ts": datetime.datetime.utcnow().isoformat() + "Z",
             "phase": "modify",
             "tool": tool,
-            "where": {"path": ch.get('path','')},
+            "where": {"path": path},
             "what": {"diff": "(from chat)"},
             "why": ch.get('rationale',''),
-            "confidence": ch.get('confidence','low')
+            "confidence": ch.get('confidence','low'),
+
+            # New fields (code-inferred)
+            "operation": infer_operation(tool),
+            "artifact_type": infer_artifact_type(path),
+            "scope": scope
         })
     return evs
 
@@ -192,7 +237,12 @@ def tests_to_events(run_id: str, tests: Dict[str,Any]) -> List[Dict[str,Any]]:
             "ts": datetime.datetime.utcnow().isoformat() + "Z",
             "phase": "test",
             "tool": "shell",
-            "cmd": cmd
+            "cmd": cmd,
+
+            # New fields (code-inferred)
+            "operation": "run",
+            "artifact_type": "test",
+            "scope": "file"
         })
     return evs
 

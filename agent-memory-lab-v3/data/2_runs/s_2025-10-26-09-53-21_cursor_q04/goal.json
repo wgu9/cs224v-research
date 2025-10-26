@@ -1,0 +1,15 @@
+{
+  "objective": "Modify the script to display which specific model is being used in the output.",
+  "allowed_paths": [
+    "test_llm_connection.py"
+  ],
+  "forbidden_paths": [],
+  "required_tests": [],
+  "run_id": "s_2025-10-26-09-53-21_cursor_q04",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

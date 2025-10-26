@@ -19,117 +19,66 @@ import json
 import pathlib
 import re
 import time
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Tuple, Optional, Dict, Any, Literal
 
 # 导入LLM客户端
 from tools.llm_client import get_llm_client
 
 
 # ============================================
-# LLM Prompts
+# Type Definitions (matching TypeScript)
 # ============================================
 
-EXTRACT_SESSION_METADATA_PROMPT = """You are a conversation analyzer that extracts session-level metadata from long cursor conversations.
+# TaskType枚举（与types/cursor-chat/pair.ts保持一致）
+TaskType = Literal['code', 'doc', 'test', 'debug', 'refactor', 'config', 'qa', 'other']
 
-**Task**: Analyze the conversation sample (first + last parts) and generate session metadata.
-
-**Output Schema** (Pure JSON, no markdown fences):
-{
-  "session_id": "s_2025-10-26-10-00-00_cursor",
-  "source": "cursor",
-  "start_datetime": "2025-10-26T10:00:00Z",
-  "total_queries": <count of **User** messages>,
-  "total_turns": <count of all messages>,
-  "project_context": "brief description of the project",
-  "overall_objective": "overall goal across all queries",
-  "tags": ["tag1", "tag2", "tag3"]
-}
-
-**Instructions**:
-1. Infer project_context from the first few user queries
-2. Summarize overall_objective across all queries (what is the user trying to achieve overall?)
-3. Count total_queries by counting "**User**" occurrences
-4. Count total_turns by counting all "**User**" and "**Assistant**/**Cursor**/**Claude**" occurrences
-5. Extract tags based on task types mentioned (e.g., "documentation", "authentication", "refactoring")
-6. Use ISO8601 format for start_datetime
-
-Output ONLY the JSON, nothing else."""
+VALID_TASK_TYPES = ['code', 'doc', 'test', 'debug', 'refactor', 'config', 'qa', 'other']
 
 
-EXTRACT_PAIR_METADATA_PROMPT = """You are a query-answer pair analyzer.
+def validate_task_type(task_type: str) -> str:
+    """
+    验证并修正task_type
 
-**Task**: Extract metadata from this query-answer pair.
+    Args:
+        task_type: LLM返回的task_type
 
-**Output Schema** (Pure JSON, no markdown fences):
-{
-  "pair_id": "s_2025-10-26-10-00-00_cursor_q01",
-  "query_index": 1,
-  "objective": "concise description of what user wants (1 sentence)",
-  "task_type": "doc" | "code" | "debug" | "test" | "refactor" | "config",
-  "related_files": ["file1.py", "file2.md"],
-  "is_followup": true | false,
-  "has_context_dependency": true | false
-}
-
-**Task Types**:
-- "doc": Documentation/translation/README updates
-- "code": New feature/implementation
-- "debug": Bug fix
-- "test": Testing/test creation
-- "refactor": Code refactoring
-- "config": Configuration changes
-
-**is_followup**: true if this query builds on or continues the previous query's work
-**has_context_dependency**: true if understanding this query requires knowing the previous context
-
-**Instructions**:
-1. Extract objective from the user's message (what they want to achieve)
-2. Identify task type based on the user's request and assistant's actions
-3. Extract all file paths mentioned in user or assistant messages
-4. Determine if this is a followup (e.g., "also", "then", "next", references to previous work)
-5. Determine if context is needed (if query references "it", "that", "above", or incomplete without context)
-
-Output ONLY the JSON, nothing else."""
+    Returns:
+        有效的task_type（如果无效则返回'other'）
+    """
+    if task_type in VALID_TASK_TYPES:
+        return task_type
+    else:
+        print(f"   ⚠️  Invalid task_type '{task_type}', defaulting to 'other'")
+        return 'other'
 
 
-GENERATE_GOAL_FROM_PAIR_PROMPT = """You are a goal.json generator for code agent monitoring.
+# ============================================
+# LLM Prompts - Loaded from files
+# ============================================
 
-**Task**: Analyze this query-answer pair and generate a goal.json file.
+def load_prompt(filename: str) -> str:
+    """
+    从tools/prompts/目录加载prompt文件
 
-**Output Schema** (Pure JSON, no markdown fences):
-{
-  "run_id": "s_2025-10-26-10-00-00_cursor_q01",
-  "objective": "string",
-  "allowed_paths": ["string"],
-  "forbidden_paths": ["string"],
-  "checkpoints": ["reproduce", "modify", "test", "regress"],
-  "required_tests": ["string"]
-}
+    Args:
+        filename: prompt文件名（如 'extract_session_metadata.txt'）
 
-**Inference Rules**:
+    Returns:
+        prompt文本内容
+    """
+    prompt_dir = pathlib.Path(__file__).parent / 'prompts'
+    prompt_path = prompt_dir / filename
 
-1. **objective**: Extract the main task from user's message (1 sentence)
+    if not prompt_path.exists():
+        raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
 
-2. **allowed_paths**: Infer which files the agent is allowed to modify
-   - Doc-only task (translate/docs) → ["README.md", "docs/**"]
-   - Code task → mentioned source files
-   - If unclear → ["**"]
+    return prompt_path.read_text(encoding='utf-8')
 
-3. **forbidden_paths**: Include ONLY if:
-   - User explicitly says "don't change X"
-   - Doc-only task → forbid code/dependencies: ["requirements.txt", "setup.py", "src/**", "*.lock"]
 
-4. **required_tests**: Extract test command names
-   - "pytest -k X" → ["X"]
-   - "npm test" → ["test"]
-
-5. **checkpoints**: Always ["reproduce", "modify", "test", "regress"]
-
-**Task Type Detection**:
-- Doc-only: keywords "translate", "docs", "README", "documentation" → strict allowed_paths
-- Code: everything else → more permissive
-
-Output ONLY the JSON, nothing else."""
+# 加载prompts
+EXTRACT_SESSION_METADATA_PROMPT = load_prompt('extract_session_metadata.txt')
+EXTRACT_PAIR_METADATA_PROMPT = load_prompt('extract_pair_metadata.txt')
+GENERATE_GOAL_FROM_PAIR_PROMPT = load_prompt('generate_goal_from_pair.txt')
 
 
 # ============================================
@@ -326,9 +275,11 @@ def extract_session_metadata(full_md: str, llm_client) -> Dict[str, Any]:
             "start_datetime": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "total_queries": len(re.findall(r'\*\*User\*\*', full_md, re.IGNORECASE)),
             "total_turns": len(re.findall(r'\*\*(?:User|Cursor|Assistant|Claude)\*\*', full_md, re.IGNORECASE)),
-            "project_context": "Unknown",
-            "overall_objective": "Unknown",
-            "tags": []
+            "model": "auto",
+            "max_mode": "No",
+            "project_context_llm": "Unknown",
+            "overall_objective_llm": "Unknown",
+            "tags_llm": []
         }
 
 
@@ -368,6 +319,10 @@ def extract_pair_metadata(
         meta['session_id'] = session_id
         meta['pair_id'] = f"{session_id}_q{query_index:02d}"
 
+        # 验证task_type_llm
+        if 'task_type_llm' in meta:
+            meta['task_type_llm'] = validate_task_type(meta['task_type_llm'])
+
         return meta
 
     except Exception as e:
@@ -377,11 +332,11 @@ def extract_pair_metadata(
             "pair_id": f"{session_id}_q{query_index:02d}",
             "session_id": session_id,
             "query_index": query_index,
-            "objective": f"Query {query_index}",
-            "task_type": "code",
-            "related_files": [],
-            "is_followup": False,
-            "has_context_dependency": False
+            "objective_llm": f"Query {query_index}",
+            "task_type_llm": "code",
+            "related_files_llm": [],
+            "is_followup_llm": False,
+            "has_context_dependency_llm": False
         }
 
 
@@ -496,13 +451,21 @@ def process_long_conversation(
     print("\n📊 Step 1b: Extracting session metadata (via LLM)...")
     session_meta = extract_session_metadata(full_md, llm_client)
 
-    # 合并header信息到session metadata
-    session_meta.update(header_info)
+    # 合并header信息到session metadata（header优先，因为是确定性提取）
+    # header字段：conversation_title, exported_datetime, cursor_version
+    # 这些字段不会与LLM生成的字段冲突（LLM字段都有_llm后缀）
+    for key, value in header_info.items():
+        if key in session_meta:
+            print(f"   ⚠️  Warning: Header field '{key}' overwrites LLM field")
+        session_meta[key] = value
+
     session_id = session_meta['session_id']
 
     print(f"✅ Session ID: {session_id}")
-    print(f"   Project: {session_meta.get('project_context', 'N/A')}")
-    print(f"   Objective: {session_meta.get('overall_objective', 'N/A')}")
+    print(f"   Model: {session_meta.get('model', 'auto')}")
+    print(f"   Max Mode: {session_meta.get('max_mode', 'No')}")
+    print(f"   Project: {session_meta.get('project_context_llm', 'N/A')}")
+    print(f"   Objective: {session_meta.get('overall_objective_llm', 'N/A')}")
 
     # 创建目录结构
     session_dir = pathlib.Path(output_dir) / session_id
@@ -551,10 +514,10 @@ def process_long_conversation(
             llm_client
         )
 
-        print(f"   Objective: {pair_meta['objective']}")
-        print(f"   Task Type: {pair_meta['task_type']}")
-        print(f"   Is Followup: {pair_meta.get('is_followup', False)}")
-        print(f"   Has Context Dependency: {pair_meta.get('has_context_dependency', False)}")
+        print(f"   Objective: {pair_meta['objective_llm']}")
+        print(f"   Task Type: {pair_meta['task_type_llm']}")
+        print(f"   Is Followup: {pair_meta.get('is_followup_llm', False)}")
+        print(f"   Has Context Dependency: {pair_meta.get('has_context_dependency_llm', False)}")
 
         # 创建query目录（聚合结构：pairs/q01/）
         query_dir = session_dir / 'pairs' / f"q{idx+1:02d}"
@@ -564,8 +527,8 @@ def process_long_conversation(
         chat_path = query_dir / 'chat.md'
 
         # 根据是否有上下文依赖，决定保存的内容
-        if pair_meta.get('has_context_dependency') and prev_pair_content:
-            final_content = f"""# Query {idx+1}: {pair_meta['objective']}
+        if pair_meta.get('has_context_dependency_llm') and prev_pair_content:
+            final_content = f"""# Query {idx+1}: {pair_meta['objective_llm']}
 
 ## Context from Previous Query
 
@@ -578,7 +541,7 @@ def process_long_conversation(
 {pair_content}
 """
         else:
-            final_content = f"""# Query {idx+1}: {pair_meta['objective']}
+            final_content = f"""# Query {idx+1}: {pair_meta['objective_llm']}
 
 {pair_content}
 """
@@ -587,8 +550,8 @@ def process_long_conversation(
         pair_meta['markdown_path'] = str(chat_path.relative_to(session_dir))
 
         # 生成goal.json（保存在同一目录）
-        # 根据has_context_dependency决定输入
-        goal_input = pair_content_with_context if pair_meta.get('has_context_dependency') else pair_content
+        # 根据has_context_dependency_llm决定输入
+        goal_input = pair_content_with_context if pair_meta.get('has_context_dependency_llm') else pair_content
         goal = generate_goal_for_pair(goal_input, session_id, idx + 1, llm_client)
 
         goal_path = query_dir / 'goal.json'
@@ -628,12 +591,12 @@ def process_long_conversation(
     print(f"📊 Statistics:")
     print(f"   - Total Queries: {len(pairs)}")
     print(f"   - Total Turns: {session_meta['total_turns']}")
-    print(f"   - Followup Queries: {sum(1 for p in pair_metas if p.get('is_followup'))}")
-    print(f"   - Context Dependent: {sum(1 for p in pair_metas if p.get('has_context_dependency'))}")
+    print(f"   - Followup Queries: {sum(1 for p in pair_metas if p.get('is_followup_llm'))}")
+    print(f"   - Context Dependent: {sum(1 for p in pair_metas if p.get('has_context_dependency_llm'))}")
     print(f"\n📝 Task Types:")
     task_types = {}
     for p in pair_metas:
-        t = p.get('task_type', 'unknown')
+        t = p.get('task_type_llm', 'unknown')
         task_types[t] = task_types.get(t, 0) + 1
     for task_type, count in sorted(task_types.items()):
         print(f"   - {task_type}: {count}")
