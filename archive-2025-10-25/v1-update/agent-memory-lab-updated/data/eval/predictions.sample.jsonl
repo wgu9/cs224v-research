@@ -1,0 +1,1 @@
+{"instance_id": "sympy__sympy-20590", "model_name_or_path": "agent-memory-lab", "model_patch": "diff --git a/path/to/file.py b/path/to/file.py\\nindex 000..111 100644\\n--- a/path/to/file.py\\n+++ b/path/to/file.py\\n@@ -1 +1 @@\\n-print('hello')\\n+print('hola')\\n"}

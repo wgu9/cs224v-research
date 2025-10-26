@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Pattern Panel (Demo)</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <h1>Pattern Panel</h1>
+  <p>This static demo shows how a pattern card could be rendered at two abstraction levels.</p>
+  <div class="panel">
+    <h2>pc_delimited_tail</h2>
+    <button onclick="show('terse')">Terse (expert)</button>
+    <button onclick="show('guided')">Guided (novice)</button>
+    <pre id="content"></pre>
+  </div>
+  <script>
+    const pattern = {
+      "views": {
+        "terse": "3 invariants + 1 assertion",
+        "guided": "example code + pitfalls + 3 boundary tests"
+      }
+    };
+    function show(v){ document.getElementById('content').innerText = pattern.views[v]; }
+    show('terse');
+  </script>
+</body>
+</html>

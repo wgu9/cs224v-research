@@ -1,0 +1,9 @@
+{"run_id": "r1", "step": 2, "scope_guard": 0, "plan_guard": 0, "test_guard": 0, "evidence_guard": 0.3, "drift_score": 0.12, "action": "ok"}
+{"run_id": "r1", "step": 1, "scope_guard": 0.0, "plan_guard": 0.0, "test_guard": 0.0, "evidence_guard": 0.0, "drift_score": 0.0, "action": "ok"}
+{"run_id": "r1", "step": 2, "scope_guard": 0.0, "plan_guard": 0.0, "test_guard": 0.0, "evidence_guard": 0.0, "drift_score": 0.0, "action": "ok"}
+{"run_id": "r1", "step": 3, "scope_guard": 0.0, "plan_guard": 0.0, "test_guard": 0.0, "evidence_guard": 0.0, "drift_score": 0.0, "action": "ok"}
+{"run_id": "r1", "step": 4, "scope_guard": 0.0, "plan_guard": 0.0, "test_guard": 0.0, "evidence_guard": 0.0, "drift_score": 0.0, "action": "ok"}
+{"run_id": "r1", "step": 1, "scope_guard": 0.0, "plan_guard": 0.0, "test_guard": 0.0, "evidence_guard": 0.0, "drift_score": 0.0, "action": "ok"}
+{"run_id": "r1", "step": 2, "scope_guard": 0.0, "plan_guard": 0.0, "test_guard": 0.0, "evidence_guard": 0.0, "drift_score": 0.0, "action": "ok"}
+{"run_id": "r1", "step": 3, "scope_guard": 0.0, "plan_guard": 0.0, "test_guard": 0.0, "evidence_guard": 0.0, "drift_score": 0.0, "action": "ok"}
+{"run_id": "r1", "step": 4, "scope_guard": 0.0, "plan_guard": 0.0, "test_guard": 0.0, "evidence_guard": 0.0, "drift_score": 0.0, "action": "ok"}

@@ -1,0 +1,15 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "response.json",
+    "requirements.txt",
+    "test_llm_connection.py",
+    "README_test_script.md"
+  ],
+  "tests": {
+    "ran": [],
+    "passed": null
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

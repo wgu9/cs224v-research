@@ -1,0 +1,15 @@
+{
+  "run_id": "s_2025-10-26-10-00-00_cursor_q01",
+  "objective": "Create a new Python file to test the LLM connection and print all key information about the model.",
+  "allowed_paths": [
+    "**"
+  ],
+  "forbidden_paths": [],
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ],
+  "required_tests": []
+}

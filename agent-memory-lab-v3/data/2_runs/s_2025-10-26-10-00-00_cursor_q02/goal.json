@@ -1,0 +1,15 @@
+{
+  "run_id": "s_2025-10-26-10-00-00_cursor_q02",
+  "objective": "Add usage instructions as comments at the top of the Python test file and explain how to run it.",
+  "allowed_paths": [
+    "test_llm_connection.py"
+  ],
+  "forbidden_paths": [],
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ],
+  "required_tests": []
+}

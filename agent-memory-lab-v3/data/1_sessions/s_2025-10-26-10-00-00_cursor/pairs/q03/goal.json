@@ -1,0 +1,15 @@
+{
+  "run_id": "s_2025-10-26-10-00-00_cursor_q03",
+  "objective": "Modify the script to run only one test by commenting out the other three tests.",
+  "allowed_paths": [
+    "test_llm_connection.py"
+  ],
+  "forbidden_paths": [],
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ],
+  "required_tests": []
+}

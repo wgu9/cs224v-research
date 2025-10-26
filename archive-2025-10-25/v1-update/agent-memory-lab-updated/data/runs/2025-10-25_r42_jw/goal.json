@@ -1,0 +1,23 @@
+{
+  "run_id": "r42",
+  "objective": "Translate README.md to Chinese",
+  "allowed_paths": [
+    "README.md",
+    "docs/"
+  ],
+  "forbidden_paths": [
+    "requirements.txt",
+    "src/",
+    "setup.py"
+  ],
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ],
+  "required_tests": [
+    "doc_lang_check",
+    "whitelist_diff_check"
+  ]
+}

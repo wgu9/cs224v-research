@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "pattern_id": "pc_doc_only_change",
+  "title": "文档/翻译类变更：只改白名单",
+  "triggers": [
+    "documentation-only",
+    "translate readme"
+  ],
+  "steps": [
+    "whitelist README.md/docs/**",
+    "forbid requirements.*",
+    "doc_lang_check & whitelist_diff_check"
+  ],
+  "invariants": [
+    "only whitelisted files changed",
+    "language==target"
+  ],
+  "anti_patterns": [
+    "edit requirements without consent"
+  ],
+  "eval_examples": [
+    "doc_lang_check",
+    "whitelist_diff_check"
+  ],
+  "views": {
+    "terse": "Whitelist-only edits; forbid deps change; ensure checks.",
+    "guided": "How to set whitelist & language checks; when to request exceptions."
+  },
+  "provenance": {
+    "source_runs": [
+      "r42"
+    ],
+    "created_by": "team",
+    "created_at": "2025-10-26T03:05:53Z"
+  }
+}
