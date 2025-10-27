@@ -1,0 +1,20 @@
+{
+  "objective": "将 @addfiles.md 文件完整翻译为中文，重要名词、function 和变量等保留英文。",
+  "allowed_paths": [
+    "@addfiles.md"
+  ],
+  "forbidden_paths": [
+    "requirements.txt",
+    "setup.py",
+    "src/**",
+    "*.lock"
+  ],
+  "required_tests": [],
+  "run_id": "s_2025-10-26-11-31-30_cursor_q16",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "project_context_llm": "A research project focused on monitoring and improving the reliability and reusability of AI coding agents (such as Cursor, Claude Code, Copilot) by analyzing their execution across multiple coding challenges. The system uses drift detection, session analysis, and pattern extraction to assess agent performance and suggest improvements.",
+  "overall_objective_llm": "The user aims to establish a robust framework for evaluating AI coding agents by collecting real-world data, analyzing drift patterns, implementing session-level metrics, and eventually extracting reusable patterns to enhance agent reliability and user experience. The goal is to prioritize immediate data-driven analysis, followed by incremental feature development and strategic extensions.",
+  "tags_llm": [
+    "ai-coding-agents",
+    "drift-detection",
+    "session-analysis",
+    "python",
+    "typescript"
+  ],
+  "session_id": "s_2025-10-26-11-24-28_cursor",
+  "conversation_title": "What does this repository do?",
+  "exported_datetime": "2025-10-26T11:04:02-07:00",
+  "cursor_version": "1.7.53",
+  "total_queries": 3,
+  "total_turns": 6
+}

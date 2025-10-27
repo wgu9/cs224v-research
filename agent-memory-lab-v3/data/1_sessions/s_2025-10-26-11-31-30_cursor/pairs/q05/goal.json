@@ -1,0 +1,20 @@
+{
+  "objective": "修正并规范基本问题.md的Markdown格式，使其内容结构清晰且适合直接放入仓库。",
+  "allowed_paths": [
+    "基本问题.md"
+  ],
+  "forbidden_paths": [
+    "requirements.txt",
+    "setup.py",
+    "src/**",
+    "*.lock"
+  ],
+  "required_tests": [],
+  "run_id": "s_2025-10-26-11-31-30_cursor_q05",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

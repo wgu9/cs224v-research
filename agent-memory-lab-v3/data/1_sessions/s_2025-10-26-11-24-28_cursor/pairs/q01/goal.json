@@ -1,0 +1,21 @@
+{
+  "objective": "Summarize the repository's purpose by reading key documentation files.",
+  "allowed_paths": [
+    "README.md",
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "requirements.txt",
+    "setup.py",
+    "src/**",
+    "*.lock"
+  ],
+  "required_tests": [],
+  "run_id": "s_2025-10-26-11-24-28_cursor_q01",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

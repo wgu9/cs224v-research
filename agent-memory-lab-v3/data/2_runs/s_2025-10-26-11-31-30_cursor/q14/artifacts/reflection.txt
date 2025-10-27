@@ -1,0 +1,30 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "README.md",
+    "requirements.txt",
+    "goal.json",
+    "raw/cursor.md",
+    "data/patterns/pc_doc_only_change.json",
+    "artifacts/view_preview.md",
+    "tools/chat2events.py",
+    "tools/events2guards.py",
+    "cursor.md",
+    "reflection.txt",
+    "/artifacts/reflection.txt",
+    "/artifacts/view_preview.md",
+    "data/runs/r60/raw/cursor.md",
+    "data/runs/r60/goal.json",
+    "scripts/e2e_chat_only.py"
+  ],
+  "tests": {
+    "ran": [
+      "pytest -k doc_lang_check` 通过。",
+      "pytest -k doc_lang_check\"}",
+      "pytest / npm test / go test / mvn test / \"tests passed / failed …\""
+    ],
+    "passed": false
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

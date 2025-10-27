@@ -1,0 +1,45 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "goal.json",
+    "raw/cursor.md",
+    "artifacts/view_preview.md",
+    "tools/chat2events.py",
+    "tools/patch2events.py",
+    "tools/term2events.py",
+    "tools/events2guards.py",
+    "base_commit.txt",
+    "cursor.md",
+    "reflection.txt",
+    "view_preview.md",
+    "chat2events.py",
+    "events2guards.py",
+    "patch2events.py",
+    "term2events.py",
+    "e2e_chat_only.py",
+    "e2e_one.py",
+    "README.md",
+    "requirements.txt",
+    "data/runs/r42/raw/base_commit.txt",
+    "a/README.md",
+    "b/README.md",
+    "a/requirements.txt",
+    "b/requirements.txt",
+    "data/runs/r42/goal.json",
+    "setup.py",
+    "data/runs/r60/raw/cursor.md",
+    "data/runs/r60/goal.json",
+    "scripts/e2e_chat_only.py"
+  ],
+  "tests": {
+    "ran": [
+      "pytest -k doc_lang_check\"}",
+      "pytest -k whitelist_diff_check\"}",
+      "pytest -k doc_lang_check\"}",
+      "pytest -k doc_lang_check\"}"
+    ],
+    "passed": true
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

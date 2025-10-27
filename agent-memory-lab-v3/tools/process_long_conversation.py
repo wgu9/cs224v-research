@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 """
-Main entry point for processing long conversations.
-
-This script takes a long chat log file (e.g., from Cursor), splits it into
-logical query-answer pairs, and uses an LLM to generate metadata and a 
-`goal.json` for each pair. The output is a structured session directory
-in `data/1_sessions/` that is ready for Q1 analysis.
-"""
-"""
 Process Long Conversation - 处理长cursor对话
 
-将长对话拆分为多个独立的query-answer pairs
-为每个pair生成metadata和goal.json
+This script takes a long chat log file (e.g., from Cursor), splits it into
+logical query-answer pairs, and uses an LLM to generate metadata and a
+`goal.json` for each pair. The output is a structured session directory
+in `data/1_sessions/` that is ready for Q1 analysis.
+
+**LLM Usage**: ✅ YES - MULTIPLE LLM CALLS
+  Step 1a: ❌ NO LLM - Regex-based cursor header extraction
+  Step 1b: ✅ LLM CALL - Extract session metadata (1 call per session)
+  Step 2:  ❌ NO LLM - Regex-based conversation splitting
+  Step 3:  ✅ LLM CALLS - For each query-answer pair (N queries × 2 calls):
+           - Extract pair metadata (objective, task_type, etc.)
+           - Generate goal.json (allowed_paths, required_tests, etc.)
+
+**Total LLM Calls**: 1 + (N_queries × 2)
+  Example: 10 queries = 1 + 20 = 21 LLM calls
+
+**Usage**: Run with runner.sh to ensure correct PYTHONPATH
+  ./runner.sh python tools/process_long_conversation.py cursor.md
 """
 
 import sys

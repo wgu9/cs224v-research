@@ -43,14 +43,47 @@
 
 ## 🚀 快速开始（Quick Start）
 
+### Q1: Drift Detection Pipeline（现已可用 ✅）
+
 ```bash
+# 1. 环境准备
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Chat-only 一键端到端
+# 2. 配置LLM API（用于metadata提取）
+cp .env.example .env
+# 编辑.env，设置LLM_API_KEY和LLM_API_ENDPOINT
+
+# 3. 处理cursor chat文件（Step 1: 使用LLM）
+./runner.sh python tools/process_long_conversation.py your_cursor_chat.md
+# 输出: data/1_sessions/s_<timestamp>_cursor/
+#   ├── session.json (session metadata)
+#   ├── pairs.json (query-answer pairs metadata)
+#   └── pairs/q01/, q02/, ... (每个query的goal.json和chat.md)
+
+# 4. 运行Q1 drift analysis（Step 2: 不使用LLM，纯规则）
+./runner.sh python tools/run_q1_batch.py data/1_sessions/s_<timestamp>_cursor
+# 输出: data/2_runs/s_<timestamp>_cursor/
+#   ├── q01/, q02/, ... (每个query的events.jsonl和guards.jsonl)
+#   └── summary.json (session-level统计)
+
+# 5. 跨session汇总分析
+./runner.sh python tools/analyze_drift_summary.py
+# 显示所有sessions的聚合统计
+```
+
+**Q1输出文件：**
+- `events.jsonl` - 提取的事件序列（edit, shell, plan等）
+- `guards.jsonl` - 每个事件的drift检测结果（4个守卫+总分）
+- `summary.json` - Session-level统计（drift_rate, health, guard failures等）
+
+### Q2/Q3: Pattern Learning & Dynamic Views（开发中）
+
+```bash
+# Q2/Q3 全链路（开发中）
 python scripts/e2e_chat_only.py <run_id> [user]
 
-# 或使用 Diff 兜底路径
+# 兜底路径（使用git diff）
 python tools/patch2events.py data/runs/<run_id>
 python tools/events2guards.py data/runs/<run_id>
 ```

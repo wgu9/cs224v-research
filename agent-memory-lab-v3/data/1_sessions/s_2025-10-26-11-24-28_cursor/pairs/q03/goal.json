@@ -1,0 +1,18 @@
+{
+  "objective": "Prioritize and execute next steps for drift analysis in cursor chat sessions, starting with data collection and analysis script development.",
+  "allowed_paths": [
+    "tools/analyze_drift_summary.py",
+    "tools/run_q1_batch.py",
+    "data/2_runs/**",
+    "2025-10-26-6B-q1-summary.md"
+  ],
+  "forbidden_paths": [],
+  "required_tests": [],
+  "run_id": "s_2025-10-26-11-24-28_cursor_q03",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

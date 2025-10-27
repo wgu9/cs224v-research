@@ -1,0 +1,10 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [],
+  "tests": {
+    "ran": [],
+    "passed": null
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

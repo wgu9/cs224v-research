@@ -1,0 +1,15 @@
+{
+  "objective": "Fix the import error in tools/run_q1_batch.py so that it can correctly import modules from the tools package.",
+  "allowed_paths": [
+    "tools/run_q1_batch.py"
+  ],
+  "forbidden_paths": [],
+  "required_tests": [],
+  "run_id": "s_2025-10-26-11-24-23_cursor_q01",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

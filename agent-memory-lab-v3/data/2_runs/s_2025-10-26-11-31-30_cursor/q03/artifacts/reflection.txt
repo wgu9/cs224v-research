@@ -1,0 +1,14 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "README.md",
+    "chat2events.py",
+    "e2e_chat_only.py"
+  ],
+  "tests": {
+    "ran": [],
+    "passed": null
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

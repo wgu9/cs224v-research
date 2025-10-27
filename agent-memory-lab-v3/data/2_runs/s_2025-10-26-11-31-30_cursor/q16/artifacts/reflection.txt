@@ -1,0 +1,32 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "addfiles.md",
+    "tools/chat2events.py",
+    "raw/cursor.md",
+    "artifacts/reflection.txt",
+    "/raw/cursor.md",
+    "/goal.json",
+    "goal.json",
+    "reflection.txt",
+    "scripts/e2e_chat_only.py",
+    "tools/events2guards.py",
+    "/artifacts/view_preview.md",
+    "pattern.pc_doc_only_change.json",
+    "view_preview.md",
+    "agent/extract_card.py",
+    "README.md",
+    "q3_views/render.py",
+    "events2guards.py",
+    "requirements.txt"
+  ],
+  "tests": {
+    "ran": [
+      "npm test|go test|mvn test` 的命令",
+      "npm test\", r\"go test\", r\"mvn test\"]"
+    ],
+    "passed": null
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

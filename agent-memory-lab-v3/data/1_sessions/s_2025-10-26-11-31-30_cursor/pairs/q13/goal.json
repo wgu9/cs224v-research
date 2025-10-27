@@ -1,0 +1,23 @@
+{
+  "objective": "Translate README.md into Chinese, modifying only documentation files.",
+  "allowed_paths": [
+    "README.md",
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "requirements.txt",
+    "setup.py",
+    "src/**",
+    "*.lock"
+  ],
+  "required_tests": [
+    "doc_lang_check"
+  ],
+  "run_id": "s_2025-10-26-11-31-30_cursor_q13",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

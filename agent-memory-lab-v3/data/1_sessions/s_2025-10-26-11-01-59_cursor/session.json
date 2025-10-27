@@ -1,0 +1,17 @@
+{
+  "project_context_llm": "Developing a Python script to test connectivity to a LiteLLM API endpoint and print detailed model information, including capabilities, limits, and configuration. The script loads environment variables, runs connection and capability tests, and outputs a summary of results.",
+  "overall_objective_llm": "Create and refine a robust Python test script that verifies LLM API connectivity, retrieves and displays key model metadata, tests model limits, and provides clear output and troubleshooting guidance for users.",
+  "tags_llm": [
+    "python",
+    "api-testing",
+    "llm",
+    "configuration",
+    "documentation"
+  ],
+  "session_id": "s_2025-10-26-11-01-59_cursor",
+  "conversation_title": "Test connection and print model information",
+  "exported_datetime": "2025-10-25T21:01:12-07:00",
+  "cursor_version": "1.7.53",
+  "total_queries": 4,
+  "total_turns": 8
+}

@@ -1,0 +1,16 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "raw/cursor.md",
+    "goal.json",
+    "cursor.md"
+  ],
+  "tests": {
+    "ran": [
+      "npm test|go test 等） → `tool=shell, phase=test`（触发 TestGuard）"
+    ],
+    "passed": null
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

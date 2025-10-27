@@ -1,0 +1,23 @@
+{
+  "objective": "将 README.md 翻译成中文，仅修改文档文件，不涉及代码或依赖。",
+  "allowed_paths": [
+    "README.md",
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "requirements.txt",
+    "setup.py",
+    "src/**",
+    "*.lock"
+  ],
+  "required_tests": [
+    "doc_lang_check"
+  ],
+  "run_id": "s_2025-10-26-11-31-30_cursor_q15",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

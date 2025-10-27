@@ -1,0 +1,21 @@
+{
+  "objective": "Review and verify the correctness and completeness of the README (v3).md and plan (V3).md documentation files.",
+  "allowed_paths": [
+    "README (v3).md",
+    "plan (V3).md"
+  ],
+  "forbidden_paths": [
+    "requirements.txt",
+    "setup.py",
+    "src/**",
+    "*.lock"
+  ],
+  "required_tests": [],
+  "run_id": "s_2025-10-26-11-31-30_cursor_q03",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

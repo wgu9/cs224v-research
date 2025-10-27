@@ -1,0 +1,41 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "README.md",
+    "chat2events.py",
+    "e2e_chat_only.py",
+    "goal.json",
+    "tools/chat2events.py",
+    "raw/cursor.md",
+    "tools/patch2events.py",
+    "tools/term2events.py",
+    "requirements.txt",
+    "artifacts/reflection.txt",
+    "artifacts/view_preview.md",
+    "patch2events.py",
+    "term2events.py",
+    "tools/events2guards.py",
+    "reflection.txt",
+    "view_preview.md",
+    "/artifacts/reflection.txt",
+    "/artifacts/view_preview.md",
+    "setup.py",
+    "artifacts/pattern.pc_doc_only_change.json",
+    "pc_doc_only_change.json",
+    "profiles/jeremy.json",
+    "data/runs/r60/raw/cursor.md",
+    "data/runs/r60/goal.json",
+    "scripts/e2e_chat_only.py"
+  ],
+  "tests": {
+    "ran": [
+      "pytest -k doc_lang_check",
+      "pytest -k doc_lang_check\"}",
+      "pytest -k doc_lang_check\" → `tool=shell, phase=test`（测试）",
+      "npm test/go test` → 生成 `tool=shell, phase=test` 事件供 `TestGuard` 使用。"
+    ],
+    "passed": null
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

@@ -3,8 +3,21 @@
 Converts a chat log into a structured sequence of events (`events.jsonl`).
 
 This script reads a `cursor.md` file from a run directory and uses heuristics
-(or a `RUNLOG` YAML block) to identify actions like editing files, planning 
+(or a `RUNLOG` YAML block) to identify actions like editing files, planning
 steps, and running tests. It is a key part of the Q1 analysis pipeline.
+
+**LLM Usage**: ❌ NO LLM CALLS
+  - Uses regex patterns and heuristics only
+  - Extracts file paths, actions, and test commands from text
+  - Optionally uses git diff if CHAT2EVENTS_GIT_ROOT is set (still no LLM)
+
+**New Fields Added** (code-inferred, not LLM):
+  - operation: 'read' | 'write' | 'run' | 'plan'
+  - artifact_type: 'code' | 'test' | 'doc' | 'config'
+  - scope: 'file' | 'multi_file'
+
+**Usage**: Run with runner.sh
+  ./runner.sh python tools/chat2events.py data/2_runs/<run_id>
 """
 import sys, json, pathlib, uuid, datetime, os, re
 from typing import List, Dict, Any, Optional

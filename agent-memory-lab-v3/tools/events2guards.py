@@ -2,11 +2,24 @@
 """
 Analyzes a sequence of events to detect context drift.
 
-This script reads an `events.jsonl` file and a `goal.json` file. For each 
-event, it applies a set of "guards" (Scope, Plan, Test, Evidence) to 
-calculate a `drift_score`. The final output is a `guards.jsonl` file 
-containing the score and a recommended action (`ok`, `warn`, `rollback`) 
+This script reads an `events.jsonl` file and a `goal.json` file. For each
+event, it applies a set of "guards" (Scope, Plan, Test, Evidence) to
+calculate a `drift_score`. The final output is a `guards.jsonl` file
+containing the score and a recommended action (`ok`, `warn`, `rollback`)
 for each event.
+
+**LLM Usage**: ❌ NO LLM CALLS
+  - Uses rule-based logic only
+  - Four guards:
+    * Scope Guard: Check if files in allowed_paths (glob pattern matching)
+    * Plan Guard: Check if tools allowed in current phase
+    * Test Guard: Check if required_tests run (string matching)
+    * Evidence Guard: Check if evidence attached in modify phase
+  - Default weights: {"scope": 0.4, "plan": 0.3, "test": 0.2, "evidence": 0.1}
+  - Default thresholds: {"warn": 0.5, "rollback": 0.8}
+
+**Usage**: Run with runner.sh
+  ./runner.sh python tools/events2guards.py data/2_runs/<run_id>
 """
 import sys, json, pathlib
 from tools.utils import in_allowed, is_forbidden

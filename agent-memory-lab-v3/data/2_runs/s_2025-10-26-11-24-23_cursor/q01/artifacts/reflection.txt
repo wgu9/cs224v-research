@@ -1,0 +1,18 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "tools/run_q1_batch.py",
+    "/Users/jeremy/Dropbox/cs224v-project/cs224v-research/agent-memory-lab-v3/tools/run_q1_batch.py",
+    "process_long_conversation.py",
+    "goal.json",
+    "chat.md",
+    "cursor.md",
+    "_summary.json"
+  ],
+  "tests": {
+    "ran": [],
+    "passed": null
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

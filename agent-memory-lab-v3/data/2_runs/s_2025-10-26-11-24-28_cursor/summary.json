@@ -1,0 +1,79 @@
+{
+  "session_id": "s_2025-10-26-11-24-28_cursor",
+  "total_queries": 3,
+  "successful_queries": 3,
+  "failed_queries": 0,
+  "queries_with_drift": 0,
+  "drift_rate": 0.0,
+  "avg_drift": 0.0,
+  "max_drift": 0.0,
+  "action_mix": {
+    "ok": 6,
+    "warn": 0,
+    "rollback": 0
+  },
+  "by_guard_failed": {
+    "scope": 0,
+    "plan": 0,
+    "test": 0,
+    "evidence": 0
+  },
+  "health": "green",
+  "queries": [
+    {
+      "run_id": "s_2025-10-26-11-24-28_cursor_q01",
+      "query_id": "q01",
+      "status": "success",
+      "drift_events": 0,
+      "warnings": 0,
+      "rollbacks": 0,
+      "ok_events": 0,
+      "drift_scores": [],
+      "guard_failures": {
+        "scope": 0,
+        "plan": 0,
+        "test": 0,
+        "evidence": 0
+      }
+    },
+    {
+      "run_id": "s_2025-10-26-11-24-28_cursor_q02",
+      "query_id": "q02",
+      "status": "success",
+      "drift_events": 0,
+      "warnings": 0,
+      "rollbacks": 0,
+      "ok_events": 0,
+      "drift_scores": [],
+      "guard_failures": {
+        "scope": 0,
+        "plan": 0,
+        "test": 0,
+        "evidence": 0
+      }
+    },
+    {
+      "run_id": "s_2025-10-26-11-24-28_cursor_q03",
+      "query_id": "q03",
+      "status": "success",
+      "drift_events": 0,
+      "warnings": 0,
+      "rollbacks": 0,
+      "ok_events": 6,
+      "drift_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "guard_failures": {
+        "scope": 0,
+        "plan": 0,
+        "test": 0,
+        "evidence": 0
+      }
+    }
+  ]
+}

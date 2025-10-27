@@ -1,0 +1,19 @@
+{
+  "objective": "Explain the step-by-step process from Cursor chat input to final results in the 基本问题.md documentation.",
+  "allowed_paths": [
+    "基本问题.md"
+  ],
+  "forbidden_paths": [
+    "requirements.txt",
+    "setup.py",
+    "src/**"
+  ],
+  "required_tests": [],
+  "run_id": "s_2025-10-26-11-31-30_cursor_q04",
+  "checkpoints": [
+    "reproduce",
+    "modify",
+    "test",
+    "regress"
+  ]
+}

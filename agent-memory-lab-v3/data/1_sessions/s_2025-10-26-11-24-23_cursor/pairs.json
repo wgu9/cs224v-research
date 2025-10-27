@@ -1,0 +1,16 @@
+[
+  {
+    "objective_llm": "Diagnose and fix the ModuleNotFoundError for the 'tools' import in the Python script.",
+    "task_type_llm": "debug",
+    "related_files_llm": [
+      "tools/run_q1_batch.py"
+    ],
+    "is_followup_llm": false,
+    "has_context_dependency_llm": false,
+    "query_index": 1,
+    "session_id": "s_2025-10-26-11-24-23_cursor",
+    "pair_id": "s_2025-10-26-11-24-23_cursor_q01",
+    "markdown_path": "pairs/q01/chat.md",
+    "goal_json_path": "pairs/q01/goal.json"
+  }
+]

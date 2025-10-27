@@ -1,0 +1,17 @@
+{
+  "source": "chat-heuristic",
+  "objective_guess": "",
+  "changed_files": [
+    "tools/analyze_drift_summary.py",
+    "/summary.json",
+    "tools/run_q1_batch.py",
+    "2025-10-26-6B-q1-summary.md",
+    "cursor.md",
+    "goal.json"
+  ],
+  "tests": {
+    "ran": [],
+    "passed": null
+  },
+  "note": "stub reflection; replace with LLM-generated summary if needed"
+}

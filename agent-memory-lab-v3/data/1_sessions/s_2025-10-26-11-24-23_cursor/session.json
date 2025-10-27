@@ -1,0 +1,17 @@
+{
+  "project_context_llm": "Debugging and fixing Python module import errors in a research project involving batch analysis scripts for conversational data.",
+  "overall_objective_llm": "Resolve Python import issues so that the batch analysis script for Q1 drift analysis can run successfully, enabling automated processing of session data.",
+  "tags_llm": [
+    "python",
+    "debugging",
+    "module-import",
+    "batch-processing",
+    "research-tools"
+  ],
+  "session_id": "s_2025-10-26-11-24-23_cursor",
+  "conversation_title": "Fix Python module import error",
+  "exported_datetime": "2025-10-26T10:29:00-07:00",
+  "cursor_version": "1.7.53",
+  "total_queries": 1,
+  "total_turns": 2
+}
