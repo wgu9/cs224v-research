@@ -1,311 +1,182 @@
-什么样的public数据集适合我的情况 为什么？我的自己的cursordechats呢
+# swe bench 
 
-## 适合你的数据集分析
+## 结论
+
+• 结论（基于 00-dataset.md）
+
+  - Q1 用 SWE-bench Verified 做主评测，确保与社区 SOTA 可比、可复现、指标可靠。
+  - Q2/Q3 用 SWE-bench-CL 做主评测，体现“跨会话学习/动态抽象”的时间连续性与迁移性；Verified 上仅可做“离线复用”的补充实验（有局限）。
+  - 若担心 CL 生态薄弱，可加“多源验证”作为缓冲：Verified 的伪时序划分/Live 的小规模实验/自有 chat 用于 Plan/Evidence 与动态抽象的补充。
+
+  简版要点
+
+  - Q1（过程合规）→ SWE-bench Verified（主榜，最通用）
+  - Q2（模式复用）→ SWE-bench-CL（序列/持续学习，衡量积累与迁移）
+  - Q3（动态抽象）→ SWE-bench-CL（依赖历史上下文做路由）
+  - 可选补充：Verified 伪时序、SWE-bench Live、小规模自有对话集
+
+  这样兼顾了学术可比性（Verified）与你研究创新点的契合度（CL 的时间序列），回应了“为何不用单一 Verified 评 Q2/Q3”的质疑。
+---
+
+### **数据选择最终结论 (中文简述)**
+
+**核心结论：主评测基准应选用 `SWE-bench Verified`，同时可将 `SWE-bench-CL` 作为补充，以增强对“学习能力”的论证深度。**
+
+具体分析如下：
+
+1.  **主基准：选择 `SWE-bench Verified` (500个任务)**
+    *   **理由**: 这是当前学术界和工业界**最官方、最通用、认可度最高**的评测标准。它是各大公开排行榜的“事实标准”，使用它报告最终的解决率（Resolve Rate），能确保您的研究成果可以直接与所有顶尖工作（如Claude、GPT系列）在同一个公认的平台上进行公平、有力的比较。
+    *   **如何评估Q2/Q3**: 虽然它是一个静态任务集，但通过设计严谨的评测协议——例如，严格使用官方的 `train` 分割来构建记忆库，并用 `Verified` 作纯测试集——完全可以有力地证明您在“跨会话模式复用”和“动态抽象”上的创新点，且不会引发“数据泄露”的质疑。
+
+2.  **补充基准：考虑 `SWE-bench-CL` (持续学习版)**
+    *   **定位**: 这是一个**专门为“持续学习”设计的、更前沿的研究型基准**。它将 `Verified` 中的任务按时间和代码库重排成序列，是评估代理知识迁移、经验累积和抗遗忘能力的**最理想工具**。
+    *   **使用策略**: 您可以用它来进行**补充实验或在附录中展示**。这能极大地增强您论文的深度，专门论证您的记忆模块（Q2）和动态适应机制（Q3）在模拟真实开发流中的先进性。
+
+**一句话总结：**
+
+**用 `SWE-bench Verified` 来证明您的代理在公认的“奥运赛场”上达到了SOTA水平；用 `SWE-bench-CL` (或在`Verified`上设计的严谨协议) 来证明您的代理是通过一种更智能、更创新的“学习与记忆”方式赢得比赛的。**
+
+这个组合策略能让您的研究成果同时具备**高可比性**（对标通用标准）和**强创新性**（验证核心机制），是最为稳妥和有力的选择。
+
+
+##
+您的理解完全正确，总结得非常精准和全面。您对各个数据集的演化、目标、关键差异以及最新性能指标的把握都非常到位。这份总结清晰地反映了SWE-bench评测生态系统的现状，可以直接作为高质量的研究背景材料。
+
+特别是您提炼出的几个核心结论，例如“70%的解决率已不代表真实智能”、“SWE-bench+是目前最严格的衡量标准”以及“SWE-bench Pro是现实中最具代表性的主流标准”，都准确地抓住了当前领域内的关键认知。
+
+根据您的要求，下面我为您制作了一张中英双语对照表。这张表格整合了各个SWE-bench版本的核心信息，非常适合在撰写论文或进行学术汇报时使用，可以帮助读者或听众快速理解不同基准之间的区别和联系。
+
+### SWE-bench 各版本对比速查表 (SWE-bench Variants Comparison Table)
+
+| 基准名称 / Benchmark | 主要用途 / Purpose | 难度 / Difficulty | 样本数 / \# Instances | SOTA 解决率 (2025) / SOTA Resolve Rate (2025) |
+|---|---|---|---|---|
+| **SWE-bench (Full)** | 建立真实世界、代码库级别任务的初始基线。<br>Establish a baseline for real-world, repository-level tasks. | 高 (High) | 2,294 [1, 2] | \~12.8% (早期基准)<br>\~12.8% (Early Baseline) |
+| **SWE-bench Lite** | 提供一个成本更低、迭代更快的轻量化评测方案。<br>Provide a less costly and faster evaluation alternative. | 中 (Medium) | 300 [1, 3] | \~45% [1] |
+| **SWE-bench Verified** | 提高评测质量和可靠性，成为主流排行榜的事实标准。<br>Increase evaluation quality and reliability; became the main leaderboard standard. | 高，但因数据污染分数虚高<br>High, but scores are inflated due to data contamination. | 500 [3, 2] | **70.6%**<br>(Claude 4.5 Sonnet) [3, 4] |
+| **SWE-bench Pro** | 抵抗数据污染，测试模型在工业级、未见过代码上的泛化能力。<br>Mitigate data contamination and test industrial-grade generalization. | 非常高 (Very High) | 1,865 (731 公开)<br>1,865 (731 Public) [5] | **43.6%**<br>(claude-4-5-Sonnet) [5] |
+| **SWE-bench-Live** | 通过持续更新任务来对抗基准老化和数据污染。<br>Combat benchmark staleness and prevent data contamination with continuous updates. | 非常高 (Very High) | 1,565+ (持续增加)<br>1,565+ (Growing) [2, 6] | **17.7%**<br>(Claude 3.7 Sonnet) [2] |
+| **SWE-bench+** | 修正原始数据中的“答案泄露”和“弱测试”等质量缺陷，衡量纯粹的推理能力。<br>Correct data quality flaws (solution leakage, weak tests) to measure pure reasoning ability. | 极高 (Extreme) | 不固定 (Filtered Set)<br>N/A (Filtered Set) | **3.83%**<br>(AutoCodeRover + GPT-4o) [7] |
+
+希望这张表格能对您的研究工作有所帮助。如果您还有其他问题，随时可以提出。
+
+SWE-bench-CL 是什么 和SWE-bench-lite有什么区别 数据上？我只想用最官方+最通用的+学术界都认可的数据集。
+
+学术地位: SWE-bench Verified 是目前最官方、最通用、学术界最广泛认可的数据集，用于衡量一个AI代理在解决真实世界软件问题上的绝对性能
+
+选 SWE-bench Verified（500） 作为主基准，理由非常直接：
+OpenAI 官方发布页明确写道——SWE-bench Verified 是从原始 SWE-bench 中人审筛出的 500 个高质量样本，并且“该版本取代（supersedes）原始 SWE-bench 与 SWE-bench-Lite 测试集”，用于更可靠地评估代理解决真实软件问题的能力**。这也是 2024–2025 年学界/业界论文最常对比的“主榜”。 
+
+
+对于验证您的核心创新点（Q2和Q3），请使用 SWE-bench-CL。
+
+这是回答“我的代理如何学习和适应？”这个问题的唯一正确工具。您可以在这上面进行消融实验，清晰地证明您的记忆模块和动态抽象机制确实带来了性能提升，并且能量化其在知识迁移和避免遗忘方面的效果。
+
+
+SWE-bench-CL 是什么？
+	•	定义：SWE-bench-CL 是一个**“持续/序列学习”版本，它把 SWE-bench Verified（人审版）的样本，按仓库时间顺序重排成任务序列**，用于评测代理是否能跨任务累积经验、迁移知识并避免遗忘。这是 2025 年的研究基准，由作者在 arXiv 公开。 ￼
+	•	规模与结构（论文版）：当前版本由 8 个仓库序列，共 273 个任务组成；每条序列按创建时间+难度（<15min / 15–60min / 1–4h / >4h）组织，并附带潜在依赖/文件重叠等元数据，用于研究迁移与遗忘。 ￼
+
+好的，这是一个非常关键的问题。为您的研究计划选择正确的数据集，能最大限度地凸显您工作的创新性。
+
+简单直接的答案是：**您的三个研究问题需要组合使用不同的数据集来评估。**
+
+以下是针对您每个研究问题（Q1, Q2, Q3）的具体数据集选择建议：
 
 ---
 
-## **最佳选择：SWE-bench** ✅✅✅
+### **Q1: 目标对齐 (Goal Alignment)**
 
-### **为什么perfect for你**：
+*   **核心问题**: 代理在**单个、多步骤任务中**如何保持目标一致性？
+*   **评估重点**: 衡量代理在一次任务执行过程中的内部行为，如“漂移率”。这不涉及跨任务学习。
+*   **最佳选择**: **`SWE-bench Verified`**
+*   **原因**:
+    1.  **单任务评估**: 这个问题关注的是单个任务内部的性能，`SWE-bench Verified` 作为一个高质量、人工验证过的静态任务集，是进行此类评估的理想选择。
+    2.  **高质量标准**: 任务经过专家验证，排除了问题描述不清或无法解决的干扰项，能让您更纯粹地评估“目标对齐”机制的效果。
+    3.  **社区公认**: 它是当前主流排行榜的“事实标准”，在这里取得的任何改进都易于和现有工作进行比较 [1]。
+*   **辅助选择**: **`SWE-bench Lite`**
+    *   **原因**: 正如您计划中所述，`Lite` 版本非常适合在项目**初期开发、调试和快速迭代**时使用，因为它成本更低、速度更快。
 
-1. **✅ 有ground truth**
-   - 2,294个真实GitHub issues
-   - 每个都有human-written solution
-   - 可以验证agent是否solve了
+### **Q2 & Q3: 跨会话模式复用 & 动态抽象级别**
 
-2. **✅ 有test suite**
-   - 每个task都有tests
-   - Pass/fail是客观的
-   - 你的feedback loop需要这个
-
-3. **✅ Real-world coding tasks**
-   - 不是toy problems
-   - Real bugs from popular repos (Django, scikit-learn, etc)
-   - 你的pattern learning会有实际价值
-
-4. **✅ 适合你的三个questions**
-   - Q1 (Goal tracking): Tasks有clear scope，可以track是否drift
-   - Q2 (Pattern learning): 可以extract patterns ("null checks", "async handling")
-   - Q3 (Dynamic abstraction): 可以store多level solutions
-
-5. **✅ Community recognition**
-   - Stanford/academic广泛使用
-   - Yucheng会认可
-   - Easy to compare with baselines
+*   **核心问题**:
+    *   (Q2) 代理如何从**上一个任务**中学习，并将经验（模式）应用到**下一个任务**？
+    *   (Q3) 代理如何根据**历史上下文**（如模式熟悉度、近期成功率）动态调整其行为？
+*   **评估重点**: 衡量代理的**学习、记忆和适应能力**，这些能力必须在**连续的任务流**中才能体现。
+*   **唯一且最佳选择**: **`SWE-bench-CL` (Continual Learning)**
+*   **原因**:
+    1.  **专为“学习”而设计**: `SWE-bench-CL` 是唯一一个将任务按照**代码库和时间顺序**组织成连续序列的数据集。它就是为了模拟开发者在同一个项目中不断解决新问题的真实场景而构建的，这与您Q2和Q3的核心假设完美契合。
+    2.  **提供必要上下文**: 只有在这个数据集中，代理才能自然地形成“任务历史”和“经验库”。例如，代理在处理序列中的第5个任务时，可以访问并利用前4个任务中提取的模式，这是评估您的记忆模块所必需的。
+    3.  **内置高级特性**: `SWE-bench-CL` 包含了“课程学习”（任务按难度排序）和“依赖感知”（标注出修改了相同文件的任务），这些特性可以极大地增强您对模式迁移有效性的分析深度。
 
 ---
 
-## **你的Cursor chat logs** ⚠️
-
-### **问题**：
-
-1. **❌ No ground truth**
-   - 没有标准答案
-   - 无法verify solution correctness
-   - Metrics不好measure
-
-2. **❌ No automated testing**
-   - 不知道fix是否真的work
-   - 你的feedback loop需要test pass/fail
-   - 人工验证每个solution？太慢
-
-3. **❌ Privacy/bias concerns**
-   - 你自己的data = biased toward你的coding style
-   - 可能有公司proprietary code
-   - Hard to share/reproduce
-
-4. **❌ Evaluation不客观**
-   - 没有benchmark可以compare
-   - Monica/Yucheng会问："How do you know it works?"
-   - Academic rigor不够
-
-5. **❌ Size问题**
-   - 你有多少session？50？100？
-   - SWE-bench有2,294个
-   - Sample size matters for ML
-
-### **但可以作为补充**：
-
-```
-Primary: SWE-bench (evaluation, metrics)
-Secondary: Your Cursor logs (case studies, qualitative analysis)
-```
-
-**用你的logs做**：
-- Motivating examples（"Look, real developers have this problem"）
-- Qualitative case studies（"Here's a real drift example"）
-- User study（test你的dynamic abstraction on yourself）
-
-**不要用来做主要evaluation。**
-
----
-
-## **其他可能的数据集**（alternatives）
-
-### **1. HumanEval** ❌
-```
-Python function completion tasks
-```
-**为什么不适合**：
-- ❌ Too simple（single functions）
-- ❌ No multi-step tasks（你的goal tracking需要multi-step）
-- ❌ No real codebases
-
-### **2. APPS** ⚠️
-```
-Competitive programming problems
-```
-**为什么不太适合**：
-- ⚠️ 不是real-world bugs
-- ⚠️ Focus on algorithms，不是software engineering
-- ⚠️ 你的patterns会很specific to algo
-
-### **3. CodeContests** ⚠️
-```
-Competition programming
-```
-**Same issue as APPS**
-
-### **4. Defects4J** ⚠️
-```
-Real Java bugs
-```
-**为什么不太适合**：
-- ⚠️ Only Java（你可能想multi-language）
-- ⚠️ Older dataset
-- ⚠️ SWE-bench更新更好
-
----
-
-## **组合策略（推荐）**
-
-### **你的proposal应该这样写**：
-
-```
-**Primary Dataset: SWE-bench**
-- 2,294 real-world GitHub issues
-- Automated test suites for objective evaluation
-- Ground truth solutions for verification
-- Used for: Main evaluation, metrics, baselines
-
-**Supplementary Data: Personal Cursor Logs**
-- Real developer interactions
-- Used for: Motivating examples, case studies
-- Demonstrates real-world problem (goal drift, context loss)
-- NOT used for quantitative evaluation
-```
-
----
-
-## **你的Week 1-6 data usage**
-
-### **Week 1-2: Start with simple SWE-bench**
-```python
-# Pick 5-10 simplest tasks
-easy_tasks = [
-    "django__django-11099",  # Simple null check
-    "scikit-learn__scikit-learn-10297",  # Type validation
-    ...
-]
-```
-
-### **Week 3 Checkpoint: 50 tasks**
-```
-Train on first 30 → Extract patterns
-Test on next 20 → Measure reuse
-```
-
-### **Week 5: Full evaluation**
-```
-100-200 tasks across difficulty levels
-Statistical significance tests
-```
-
-### **Week 6: Case studies**
-```
-Include 2-3 examples from YOUR Cursor logs
-Show: "Real developers face these issues"
-```
+### **总结与建议的实验流程**
 
----
+为了让您的论文逻辑清晰、论证有力，建议采用如下的评估策略：
 
-## **为什么SWE-bench > 你的logs**
+1.  **第一阶段：模块开发与基线测试 (使用 `SWE-bench Lite`)**
+    *   **目标**: 快速开发和验证您的 **Q1 (目标对齐)** 模块。
+    *   **产出**: 得到一个没有记忆功能的“基础版”代理，并测试其在 `Lite` 上的基础 `Resolve Rate` 和 `Drift Rate`。
 
-### **Table对比**：
-
-| 维度 | SWE-bench | 你的Cursor logs |
-|------|-----------|----------------|
-| Ground truth | ✅ Yes | ❌ No |
-| Automated tests | ✅ Yes | ❌ No |
-| Size | ✅ 2,294 | ⚠️ ~100? |
-| Objectivity | ✅ High | ❌ Biased to你 |
-| Reproducible | ✅ Yes | ⚠️ Privacy issues |
-| Academic认可 | ✅ High | ❌ Low |
-| Real-world | ✅ Yes | ✅ Yes |
-| Multi-step | ✅ Yes | ✅ Yes |
-
-**Score: SWE-bench 8/8, Your logs 3/8**
-
----
+2.  **第二阶段：核心贡献评估 (使用 `SWE-bench-CL`)**
+    *   **目标**: 在连续的任务序列上，全面评估您的 **Q2 (模式复用)** 和 **Q3 (动态抽象)** 机制。
+    *   **产出**: 这是您论文的核心实验部分。您将在这里测量 `Pattern Reuse Rate`，并通过消融实验证明动态抽象优于固定策略，有力地展示您工作的创新价值。
 
-## **Yucheng会怎么看**
+3.  **第三阶段：最终综合评估 (组合使用)**
+    *   **目标**: 评估集成了所有模块（Q1+Q2+Q3）的最终代理的综合性能。
+    *   **产出**:
+        *   在 **`SWE-bench-CL`** 上报告最终的 `Resolve Rate`，展示您的系统在持续学习场景下的最终效果。
+        *   （可选）在 **`SWE-bench Verified`** 上也运行一次最终模型，以便将您的代理在“单任务解决能力”上与排行榜上的其他SOTA模型进行直接对比。
 
-### **如果你只用SWE-bench**：
-```
-✅ "Good, standard benchmark, rigorous evaluation"
-```
+通过这样的分层评估策略，您可以清晰地将每个研究问题的贡献与最适合它的数据集相匹配，使您的研究成果既有深度（在`CL`上验证学习能力）又有广度（在`Verified`上对比通用性能）。
 
-### **如果你只用你的logs**：
-```
-❌ "How do you verify correctness? 
-    Where's ground truth?
-    Sample size too small.
-    Evaluation not objective."
-```
-
-### **如果你combine**：
-```
-✅ "Smart - SWE-bench for rigorous evaluation,
-    personal logs for motivation and case studies.
-    Best of both worlds."
-```
 
----
+好的，这是一个非常重要的问题，关乎到您研究设计的核心。
 
-## **Implementation建议**
+简单的回答是：**可以，但这样做存在重大缺陷，会削弱您研究中最具创新性部分的说服力。**
 
-### **你的proposal要写**：
+下面我将详细解释为什么，以及如果您坚持使用 `SWE-bench Verified`，需要如何操作。
 
-```
-**Data & Evaluation**
+### 如果坚持使用 SWE-bench Verified 评估 Q2 和 Q3
 
-Primary Dataset: SWE-bench (Jimenez et al., 2024)
-- 2,294 real-world GitHub issues from 12 popular Python repos
-- Each task includes: problem description, code context, test suite, solution
-- Enables objective evaluation via automated test execution
+您**可以**用它来评估您的记忆和适应模块，但这需要一个“模拟”的学习流程，具体操作如下：
 
-Evaluation Split:
-- Training: First 50 tasks (extract patterns, tune system)
-- Validation: Next 50 tasks (measure pattern reuse)
-- Test: Final 100 tasks (final metrics, statistical tests)
+1.  **数据集拆分**: 您需要将 `SWE-bench Verified` 的500个任务手动分成两部分：
 
-Supplementary Data: 
-- Personal development logs for qualitative case studies
-- Demonstrates real-world occurrence of goal drift
-- NOT used for quantitative evaluation
+      * **“记忆构建集” (Memory-Building Set)**: 例如，随机抽取100个任务。您的代理会先处理这100个任务，唯一的目的就是从成功解决的任务中提取模式，并存入记忆库。
+      * **“评估集” (Evaluation Set)**: 剩下的400个任务。然后，您让代理去解决这400个任务，并允许它从之前构建的记忆库中检索模式。
 
-Metrics: [你的metrics table]
-```
+2.  **评估方式**:
 
----
+      * **Q2 (模式复用)**: 您可以统计在这400个评估任务中，有多少次成功检索并应用了从那100个任务中学到的模式。
+      * **Q3 (动态抽象)**: 您可以根据代理在处理这400个任务时的表现（例如，连续失败次数）来调整抽象级别。
 
-## **如果Monica/Yucheng问：Why not use your own data?**
+### 这种方法的严重局限性（为什么不推荐）
 
-### **你的回答**：
+虽然上述方法在技术上可行，但在学术上存在几个关键缺陷，这可能会成为审稿人质疑的重点：
 
-```
-"I considered using my personal Cursor logs, but chose SWE-bench 
-for rigor:
+1.  **缺乏时间连续性 (Lack of Temporal Coherence)**: 这是最致命的问题。`SWE-bench Verified` 的任务是**无序的**。您可能会用一个2023年学到的模式去解决一个2021年的问题。这完全违背了真实软件开发的演进规律，也违背了“持续学习”的本质。您的研究故事将从“一个能随项目演进而学习的智能体”降级为“一个能在随机任务集上进行模式匹配的智能体”。
 
-1. SWE-bench has ground truth solutions and automated tests - 
-   essential for objective evaluation
-   
-2. It's a recognized benchmark - allows comparison with baselines
-   
-3. My personal logs are valuable for case studies and motivation,
-   but insufficient for statistical evaluation
+2.  **无法模拟代码库演进**: 真实世界中，开发者是在一个**不断变化的代码库**上工作的。`SWE-bench-CL` 通过按时间排序任务来模拟这一点。而使用 `SWE-bench Verified`，每个任务都是基于一个孤立的、静态的代码库快照，您的代理无法学习适应代码的演变。
 
-I'll use both: SWE-bench for quantitative metrics, my logs for 
-qualitative insights."
-```
+3.  **Q3的上下文信号变得不可靠**: 您的Q3研究依赖于“上下文信号”，比如“这个模式是第一次见还是见过多次”。在一个随机打乱的任务集上，这种信号的意义大打折扣。代理无法形成一个连贯的“经验”，因为任务之间没有逻辑或时间上的关联。
 
-**Professional，thoughtful，rigorous。** ✅
+4.  **削弱了研究的创新性声明**: 您研究最核心的创新点在于**跨会话学习**和**动态适应**。使用一个并非为此设计的静态基准，会使您对这些创新点的验证显得不够有力。审稿人完全有理由提问：“为什么不使用专为评估持续学习而设计的 `SWE-bench-CL` ？”
 
----
+### 最终的、最强有力的建议
 
-## **总结**
+为了让您的研究成果最大化，并经得起严格的学术评审，建议采用以下分工明确的策略：
 
-### **最佳策略**：
+| 研究问题 (Research Question) | **首选数据集 (Primary Dataset)** | **为什么这是最佳选择 (Why it's the best fit)** |
+| :--- | :--- | :--- |
+| **Q1: 目标对齐**<br>(Goal Alignment) | **`SWE-bench Verified`** | 这是一个单任务内部的评估。使用社区公认的、高质量的静态基准来衡量代理的基础执行能力是最标准、最公平的做法。 |
+| **Q2: 模式复用**<br>(Pattern Reuse) | **`SWE-bench-CL`** | 您的核心假设是“跨会话学习”。只有在按时间顺序排列的任务序列上，才能真正衡量知识的**积累**和**迁移**。 |
+| **Q3: 动态抽象**<br>(Dynamic Abstraction) | **`SWE-bench-CL`** | 动态调整依赖于**历史上下文**。只有在连续的任务流中，代理才能形成有意义的“经验历史”，从而支撑其动态决策。 |
 
-```
-Primary: SWE-bench ✅✅✅
-- All quantitative evaluation
-- Main metrics
-- Statistical tests
+**总结来说：**
 
-Secondary: Your Cursor logs ✅
-- Motivating examples
-- Case studies  
-- "This is a real problem"
-
-DON'T: Only use your logs ❌
-- No ground truth
-- No objectivity
-- Academic rigor不够
-```
-
----
-
-## **Action Items**
-
-### **今晚（30分钟）**：
-```python
-# Download SWE-bench
-git clone https://github.com/princeton-nlp/SWE-bench
-pip install -e .
-
-# Explore data
-from datasets import load_dataset
-swe_bench = load_dataset("princeton-nlp/SWE-bench")
-print(swe_bench['test'][0])  # Look at first task
-```
-
-### **Week 1: Start with 5 easy tasks**
-### **Week 3: Scale to 50 tasks**
-### **Week 5: Evaluate on 100+ tasks**
-
----
-
-**你的proposal已经写了SWE-bench，这是对的。保持这个。** ✅
-
-需要我帮你写code来load SWE-bench吗？
+  * **可以**用 `SWE-bench Verified` 来评估Q2和Q3，但这是一种**有缺陷的、退而求其次**的方法。
+  * **强烈建议**您使用 `SWE-bench Verified` 来评估Q1，以证明您的代理基础扎实、可与SOTA对比；然后**使用 `SWE-bench-CL` 来评估Q2和Q3**，以最有说服力的方式证明您研究的核心创新点。
+-----
+# appendix 1.
+[text](<00-dataset-SWE-bench SOTA Resolve Rate Update.docx>)

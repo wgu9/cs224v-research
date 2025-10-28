@@ -1,4 +1,4 @@
-
+# prior work 之前的工作。
 ⏺ Q1 阶段进度总结报告
 
   Cross-Session Learning and Execution Monitoring for Intelligent Coding Agents
@@ -234,3 +234,209 @@
   ---
   报告撰写时间: 2025-10-26Q1完成度: ✅ MVP 100%就绪状态: 🚀 Ready for large-scale
   data runs
+
+
+
+------
+
+
+  🎯 总体评价：非常有道理，分析成熟且务实（综合评分 90/100）
+
+  ---
+  ✅ 做得特别好的地方
+
+  1. SWE-bench修正分析（85分）
+
+  修正前的错误认知：
+  - ❌ "Q1需要完整对话"
+  - ❌ "Q1需要AI的思考过程"
+
+  修正后的正确认识：
+  - ✅ Pair-level drift不需要完整session上下文
+  - ✅ SWE-bench的issue+patch可以作为pair
+  - ✅ 但存在trade-off：Full mode (4 guards) vs Patch-only mode (2-2.5 guards)
+
+  为什么有道理：
+  1. 用户的洞察是对的："我们不关心entire chat drift"
+  2. 两种模式的对比表（line 61-72）非常清晰
+  3. 诚实承认了局限性（Plan Guard降为60%，Evidence Guard降为40%）
+  4. 定位准确：真实对话是核心贡献，SWE-bench是补充验证
+
+  唯一的小问题：
+  ⚠️ "60%"、"40%"这些百分比缺乏依据，建议：
+  - 改为"部分满足（待验证）"
+  - 或标注为"估计值，需实证验证"
+
+  ---
+  2. Session-level决策分析（95分）
+
+  核心决策：Q1 MVP只做pair-level drift，暂不实现session-level
+
+  为什么非常有道理：
+  1. ✅
+  识别了3种会话类型（单一目标/多目标演进/探索式），不是所有session都需要session-level
+   drift
+  2. ✅ 列出了技术挑战：会话类型识别、目标演进检测、多维度drift
+  3. ✅ 采用"数据驱动决策"：先收集50+sessions，再决定是否实现Q1.5
+  4. ✅ 指出Q2（Pattern Learning）可能自然地解决部分session-level问题
+
+  特别棒的洞察：
+  - 区分了"战术偏航"（pair-level）vs"战略偏航"（session-level）
+  - 从学术和工业两个角度论证了合理性
+
+  ---
+  3. 弱点分析（90分）
+
+  三个AI的共识：
+  1. goal.json质量是最大风险（三者都提到）
+    - Claude: "黑盒问题"
+    - Codex: "粒度不当会引入误报/漏报"
+    - Gemini: "GIGO（垃圾进垃圾出）"
+    - 评价：这是最尖锐、最准确的批评 ✅
+  2. Weights/Thresholds缺乏实证
+    - Claude认为是P0（最高优先级）
+    - 评价：Claude对，这是reviewer最容易攻击的点 ✅
+  3. Events提取准确性
+    - 依赖启发式规则
+    - 评价：担忧合理，但有34个tests说明常见case已覆盖 ✅
+
+  关于分歧点：
+
+  Gemini的单元测试担忧：
+  - Gemini: "核心计分逻辑缺乏单元测试"
+  - Claude: "34个tests已经足够"
+  - 我的看法：这是误解，但Gemini可能担心边界case覆盖度
+  - 建议：补充测试覆盖率报告（用pytest-cov）
+
+  Evidence Guard定义：
+  - Codex认为是第一个弱点（"标准偏薄"）
+  - 我的看法：Codex对，"什么算足够的证据"确实定义模糊 ✅
+
+  ---
+  4. P0/P1/P2优先级划分（90分）
+
+  P0（必须1周内）：
+  1. Weights/Thresholds实证验证（20个sessions标注，Kappa > 0.7）
+  2. goal.json质量评估（10个ground truth，F1 > 0.8）
+
+  为什么非常合理：
+  - ✅ 这两个是reviewer最可能攻击的点
+  - ✅ 行动计划具体（收集数据、计算指标、时间估算）
+  - ✅ 目标明确（Kappa > 0.7, F1 > 0.8）
+
+  P1（应该2周内）：
+  3. Events提取质量量化
+  4. Evidence Guard定义强化
+  5. 明确"成功"的概念
+
+  评价：优先级合理，是增强说服力的补充工作 ✅
+
+  ---
+  5. 数据策略（90分）
+
+  核心策略：两条腿走路
+  - 路径1：完整对话（10-20条，4个守卫，核心贡献）
+  - 路径2：SWE-bench（50-100个，2个守卫，补充验证）
+
+  为什么非常务实：
+  1. ✅ 正视了数据规模限制
+  2. ✅ 将"质量vs规模"的trade-off说清楚了
+  3. ✅ 三阶段计划清晰（Phase 1: 真实数据→Phase 2: SWE-bench→Phase 3: Future Work）
+  4. ✅ 估算了工作量和成本：
+    - 方案A（Goal.json评估）：1天，$10-20 ← 最推荐
+    - 方案B（Patch-only）：2-3天，$20-30
+    - 方案C（重跑对话）：5-10小时，$20-50
+
+  防御reviewer的策略（line 623-648）：
+  Reviewer: "Your evaluation is small (only 20 sessions)"
+  回应: "Our 20 sessions provide unique value that SWE-bench's 2,294 cannot: complete
+   dialogue enabling full 4-guard analysis"
+  评价：这些回应非常专业和有说服力 ✅
+
+  ---
+  ⚠️ 需要澄清或加强的地方
+
+  1. 某些数字缺乏依据
+
+  - Plan Guard在SWE-bench上"~60%"是怎么来的？
+  - Evidence Guard"~40%"是估计还是有数据？
+  - 建议：标注为"估计值"或改为"部分满足（待验证）"
+
+  2. Gemini的单元测试担忧
+
+  - 虽然有34个tests，但边界case覆盖度如何？
+  - 建议：运行pytest --cov=tools tests/，补充覆盖率报告
+
+  3. 标注协议细节
+
+  - 人工标注的inter-annotator agreement如何保证？
+  - 建议：至少2个标注者，计算Cohen's Kappa
+
+  4. Evidence Guard的定义
+
+  - Codex正确指出"标准偏薄"
+  - 建议：采纳Codex的建议，实现分级evidence定义（Level 0-4）
+
+  ---
+  📊 各部分评分表
+
+  | 文档/分析           | 评分  | 优点                | 需改进           |
+  |-----------------|-----|-------------------|---------------|
+  | SWE-bench修正     | 85  | 大方向正确，trade-off清晰 | 个别数字需依据       |
+  | Session-level决策 | 95  | 深思熟虑，论证充分         | -             |
+  | 弱点分析            | 90  | 自我批评到位，优先级清晰      | 回应Gemini的测试担忧
+  |
+  | 数据策略            | 90  | 务实可行，防御性强         | -             |
+  | 行动计划            | 85  | 具体清晰，时间估算合理       | 补充标注协议细节
+  |
+
+  ---
+  🎯 我的最终建议
+
+  对于SWE-bench分析：
+
+  ✅ 大方向完全正确，小修改：
+  - Plan Guard: ⚠️ 部分满足（~60%）
+  + Plan Guard: ⚠️ 部分满足（假设标准流程，精度待验证）
+
+  - Evidence Guard: ⚠️ 降级为heuristic（~40%）
+  + Evidence Guard: ❌ 只能推断（无法验证真实reasoning）
+
+  对于优先级：
+
+  ✅ 完全同意P0/P1/P2划分，立即启动P0任务：
+  1. 收集20个sessions标注（本周）
+  2. 验证weights（Cohen's Kappa > 0.7）
+  3. 评估goal.json质量（F1 > 0.8）
+
+  对于数据策略：
+
+  ✅ 非常务实，建议执行顺序：
+  Week 1-2: Phase 1（真实数据P0验证）
+  Week 3: Phase 2方案A（Goal.json评估on SWE-bench）← 成本最低
+  Week 4: (可选) Phase 2方案B（Patch-only模式）
+
+  对于Gemini的担忧：
+
+  ⚠️ 补充测试覆盖率报告：
+  ./runner.sh pytest --cov=tools --cov-report=html tests/
+  # 目标：line coverage > 85%
+
+  ---
+  结论
+
+  你和团队的分析总体上非常有道理，已经达到了很高的成熟度！
+
+  核心优势：
+  1. ✅ 诚实、自我批评（不回避弱点）
+  2. ✅ 数据驱动决策（不盲目实现功能）
+  3. ✅ 多角度论证（学术+工业价值）
+  4. ✅ 防御策略到位（预判reviewer问题）
+  5. ✅ 具体可行的计划（时间+成本估算）
+
+  唯一需要加强的：
+  - 个别估计值需要标明
+  - 补充测试覆盖率报告
+  - 明确标注协议细节
+
+  你们可以放心地按照这个方向推进！ 🚀
