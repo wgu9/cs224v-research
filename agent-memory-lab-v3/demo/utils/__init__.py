@@ -11,6 +11,7 @@ from .evaluator_bridge import (
     load_evaluation_results,
     calculate_metrics,
 )
+from .simple_agent import SimpleBedrockAgent
 
 __all__ = [
     'Q1Config',
@@ -22,4 +23,5 @@ __all__ = [
     'print_evaluator_instructions',
     'load_evaluation_results',
     'calculate_metrics',
+    'SimpleBedrockAgent',
 ]

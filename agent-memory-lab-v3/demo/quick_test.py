@@ -4,11 +4,8 @@
 """
 
 from pathlib import Path
-from step1_load_data import load_task
-from step2_init_guards import FourGuardMonitor
-from step3_mock_agent import MockAgent
-from step4_monitor_actions import ActionMonitor
-from step5_evaluate import evaluate_scope, evaluate_resolved_mock
+from steps import load_task, FourGuardMonitor, MockAgent, ActionMonitor
+from steps import evaluate_scope, evaluate_resolved_mock
 
 
 def main():

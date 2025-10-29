@@ -6,7 +6,7 @@ Step 2: Q1初始化 (Four-Guard Monitor)
 import os
 from typing import Set, Dict, Any, List
 from dataclasses import dataclass
-from step1_load_data import SWEBenchTask, load_task
+from .step1_load_data import SWEBenchTask, load_task
 from pathlib import Path
 
 

@@ -6,7 +6,7 @@ Step 5-6: 事后评估
 import re
 from typing import Set, Dict, Any
 from pathlib import Path
-from step1_load_data import load_task
+from .step1_load_data import load_task
 
 
 def extract_files_from_patch(patch: str) -> Set[str]:

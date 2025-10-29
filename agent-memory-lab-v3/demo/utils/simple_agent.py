@@ -14,10 +14,12 @@ class SimpleBedrockAgent:
     只用1个LLM调用生成patch，不需要工具调用
     """
 
-    def __init__(self):
+    def __init__(self, require_token=True):
         """初始化Agent"""
         # 检查环境变量
-        if not os.getenv('AWS_BEARER_TOKEN_BEDROCK'):
+        self.has_token = bool(os.getenv('AWS_BEARER_TOKEN_BEDROCK'))
+
+        if require_token and not self.has_token:
             raise ValueError(
                 "Missing AWS_BEARER_TOKEN_BEDROCK environment variable. "
                 "Please set: export AWS_BEARER_TOKEN_BEDROCK=..."
@@ -53,6 +55,17 @@ diff --git a/path/to/file.py b/path/to/file.py
 @@ -10,7 +10,7 @@ def function():
 -    old line
 +    new line
+"""
+
+        # 如果没有token，返回mock patch用于测试
+        if not self.has_token:
+            print("⚠️  No AWS token - returning mock patch for testing")
+            return """diff --git a/example/file.py b/example/file.py
+--- a/example/file.py
++++ b/example/file.py
+@@ -10,7 +10,7 @@ def function():
+-    old implementation
++    new implementation
 """
 
         try:
@@ -96,8 +109,8 @@ def test_agent():
     print(f"📦 Repo: {task.repo}")
     print(f"📝 Problem: {task.problem_statement[:100]}...")
 
-    # 创建Agent
-    agent = SimpleBedrockAgent()
+    # 创建Agent (allow testing without token)
+    agent = SimpleBedrockAgent(require_token=False)
 
     print(f"\n🤖 Calling Bedrock API...")
     patch = agent.solve(task)

@@ -6,7 +6,11 @@ SWE-bench Evaluator Bridge
 import json
 from pathlib import Path
 from typing import List, Dict, Any
-from step1_load_data import SWEBenchTask
+import sys
+
+# Add parent directory to path to import from steps
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from steps.step1_load_data import SWEBenchTask
 
 
 def prepare_predictions(

@@ -5,9 +5,9 @@ Four-Guard监控每个action，计算drift score
 
 from typing import Dict, Any
 from pathlib import Path
-from step1_load_data import load_task
-from step2_init_guards import FourGuardMonitor
-from step3_mock_agent import MockAgent, Action
+from .step1_load_data import load_task
+from .step2_init_guards import FourGuardMonitor
+from .step3_mock_agent import MockAgent, Action
 
 
 class ActionMonitor:
