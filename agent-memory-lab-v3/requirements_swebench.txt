@@ -1,0 +1,3 @@
+# SWE-bench data download requirements
+datasets>=2.14.0
+huggingface-hub>=0.17.0

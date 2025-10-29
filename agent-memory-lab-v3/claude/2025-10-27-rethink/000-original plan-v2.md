@@ -25,7 +25,7 @@ Our preliminary analysis of 10 real coding sessions confirms agents frequently m
 - **Test**: Verification steps executed?
 - **Evidence**: Changes have supporting rationale?
 
-**Mechanism**: Track alignment violations through weighted combination of four guards, block actions when drift score exceeds threshold.
+**Mechanism**: Track alignment violations through weighted combination of four guards, WARN at drift ≥0.5 and issue a rollback advisory (block submission) at ≥0.8, following shadow→advisory rollout.
 
 **Evaluation on SWE-bench Verified**:
 - Primary metric: Drift Rate (% actions violating any of four guards)
@@ -114,7 +114,7 @@ For Q2/Q3 auxiliary analysis, we may additionally construct time-ordered subsets
 **Primary Metric**: Resolve Rate
 - Definition: % tasks where all required tests pass
 - Current landscape (Verified): top closed-source systems report >70% (e.g., Claude Sonnet 4.5 ~77%, OpenAI o3 ~71% at the time of writing); research baselines vary widely by agent scaffold (framework/pipeline)
-- Our Target (Verified context): set relative to published research baselines under similar constraints (e.g., ≥30% with our guard/pattern/view pipeline), finalized after baseline runs
+- Our Target (Verified context): set relative to published research baselines under similar constraints (e.g., ≥30% with our guard/pattern/dynamic-abstraction pipeline), finalized after baseline runs
 
 **Q1 Metrics**:
 - Drift Rate (primary): % actions violating alignment guards (weighted combination of Scope/Plan/Test/Evidence)
@@ -258,7 +258,7 @@ Throughout this proposal:
   - Task: "Fix login validation to accept emails with '+' character"
   - Expected scope: `login_validator.py` (1 file, ~5 line change)
   - Agent did: Modified 12 files, refactored authentication system, changed database schema, skipped testing
-  - Result: Goal drift detected, action blocked
+  - Result: Goal drift detected, rollback advisory triggered (submission blocked)
 
 **Multi-step Task**
 - **Definition**: A task requiring multiple sequential actions across different phases (e.g., understand → reproduce → implement → verify → test).
@@ -435,88 +435,6 @@ Throughout this proposal:
 
 ---
 
-### Primary (P0) Metrics (removed; see main Metrics)
-<!-- BEGIN-REMOVED-P0-METRICS -->
-
-**Resolve Rate** (Primary success metric)
-- **Definition**: Percentage of tasks where the agent's solution passes all required tests.
-- **Formula**: `(# tasks with all FAIL_TO_PASS tests passing AND no PASS_TO_PASS regressions) / (# total tasks attempted)`
-- **Measurement**: Automated test execution on dockerized environment per SWE-bench protocol
-- **Interpretation**: 30% = agent successfully solves 30 out of 100 tasks
-- **Reference landscape (Verified)**: see main Metrics; all figures reported with split/time/scaffold
-- **Our Target (Verified, compute‑matched)**: ≥30%, finalized after baseline runs
-
-**Drift Rate** (Q1 primary metric)
-- **Definition**: Percentage of agent actions that violate alignment guards (modify files outside scope, wrong phase tools, skip verification, lack rationale).
-- **Formula**: `(# actions with drift_score ≥ 0.5) / (# total actions taken)`
-- **Measurement**: Real-time evaluation using Four-Guard system on each action before execution
-- **Interpretation**: 15% = 15 out of 100 actions flagged as drift (either warned or blocked)
-- **Baseline**: TBD from Week 1 unmonitored agent runs
-- **Target**: <15% (improvement over baseline)
-
-**False Positive Rate** (Q1 secondary metric)
-- **Definition**: Percentage of blocked actions that should have been allowed (i.e., were actually on-task but flagged as drift).
-- **Formula**: `(# false positives) / (# total blocked actions in sample)`
-- **Measurement**: Manual review of 50 blocked actions sampled from validation set. Two annotators label each as "correct block" or "false positive".
-- **Interpretation**: 30% = 3 out of 10 blocked actions were actually valid
-- **Target**: <30% (balance between preventing drift and not over-restricting)
-- **Trade-off**: Lower threshold (more blocking) increases recall but also false positives
-
-**Pattern Reuse Rate** (Q2 primary metric)
-- **Definition**: Percentage of test tasks where at least one relevant pattern was retrieved from training data and presented to the agent.
-- **Formula**: `(# test tasks where ≥1 pattern retrieved with similarity ≥ threshold) / (# total test tasks)`
-- **Threshold**: Cosine similarity ≥ 0.7 (tuned on validation set)
-- **Measurement**: Log pattern retrieval events during test task execution
-- **Interpretation**: 30% = 30 out of 100 test tasks had a relevant pattern available
-- **Note**: Retrieval ≠ usage. Agent may retrieve pattern but not follow it. See "Success with Pattern" for usage effectiveness.
-
-**Success with Pattern** (Q2 primary metric)
-- **Definition**: Comparative resolve rate between tasks where patterns were available vs. tasks without patterns.
-- **Formula**: `Resolve_rate(with_pattern) - Resolve_rate(without_pattern)`
-- **Measurement**: Stratify test tasks into two groups based on pattern retrieval, compute resolve rate for each
-- **Statistical test**: Fisher/χ² or McNemar (paired), or logistic regression with fixed effects; report 95% CIs
-- **Interpretation**: +10% = tasks with patterns succeed 10 percentage points more often
-- **Target**: Demonstrate statistically significant positive correlation
-
-**Pattern Coverage** (Q2 secondary metric)
-- **Definition**: Percentage of test tasks that have at least one relevant pattern available in the pattern library (regardless of whether agent uses it).
-- **Formula**: `(# test tasks with ≥1 pattern above similarity threshold) / (# total test tasks)`
-- **Interpretation**: Measures pattern library completeness, not usage effectiveness
-- **Distinction from Reuse Rate**:
-  - Coverage = availability (library has relevant pattern)
-  - Reuse = actual retrieval during execution
-- **Target**: ≥40% (indicates diverse pattern extraction)
-
-**Action Efficiency** (Q2 secondary metric)
-- **Definition**: Average number of actions required to solve tasks, comparing with-pattern vs without-pattern conditions.
-- **Formula**: `avg_actions(without_pattern) - avg_actions(with_pattern)`
-- **Measurement**: Count actions from start to successful test pass
-- **Interpretation**: -5 actions = tasks with patterns require 5 fewer actions on average
-- **Why this matters**: Proxy for time savings (fewer actions = faster)
-- **Target**: Statistically significant reduction (proportion/paired tests or logistic regression; report 95% CIs)
-
-**Dynamic vs Fixed Efficiency** (Q3 primary metric)
-- **Definition**: Comparison of resolve rate when using context-aware abstraction selection vs. fixed abstraction levels.
-- **Baselines**: Three fixed strategies (always Level 1, always Level 2, always Level 3)
-- **Formula**: `Resolve_rate(dynamic) - max(Resolve_rate(fixed_L1), Resolve_rate(fixed_L2), Resolve_rate(fixed_L3))`
-- **Measurement**: Run ablation study with four conditions on same test set
-- **Interpretation**: +5% = dynamic selection outperforms best fixed strategy by 5 percentage points
-- **Target**: Dynamic ≥ best fixed level (any improvement validates approach)
-
-**Level Distribution** (Q3 analysis metric)
-- **Definition**: Frequency of each abstraction level selected across all test tasks with pattern retrieval.
-- **Measurement**: Log level selection for each pattern application, compute distribution
-- **Expected distribution** (hypothesis):
-  - Level 1 (Hint): 20-30% (simple, familiar tasks)
-  - Level 2 (Explanation): 40-50% (medium complexity)
-  - Level 3 (Code): 20-30% (complex, unfamiliar)
-- **Analysis**: Cross-tabulate with task complexity and pattern familiarity to validate selection logic
-- **Purpose**: Understand which contexts trigger which levels (explanatory, not evaluative)
-
----
-
-<!-- END-REMOVED-P0-METRICS -->
-
 ### Assumptions
 
 1. **Pattern transferability**: Patterns extracted from training tasks will be relevant to test tasks (validated through semantic similarity threshold ≥ 0.7 in retrieval).
@@ -533,7 +451,7 @@ Throughout this proposal:
 
 7. **Proxy metrics validity**: Action count and token usage serve as reasonable proxies for time savings when direct time measurement isn't available.
 
-8. **Pattern diversity**: 50 training tasks will yield 10-20 distinct pattern types covering common bug categories (null checks, type mismatches, boundary conditions, concurrency). Validated by inspecting problem statements in training set.
+8. **Pattern diversity**: A subset of the official train split will yield diverse pattern types covering common bug categories (null checks, type mismatches, boundary conditions, concurrency). We will validate by inspecting problem statements in the memory-building corpus.
 
 9. **Retrieval threshold**: Cosine similarity ≥ 0.7 is appropriate for semantic matching (too low = irrelevant patterns, too high = miss useful patterns). Will validate on validation set and adjust if needed.
 

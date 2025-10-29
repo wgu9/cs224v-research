@@ -1,0 +1,1551 @@
+⏺ 完美！Verified数据已经ready了（500 tasks）。现在让我创建一个简单的script下载train split：
+
+已为四个文件添加中文注释，说明各自功能：
+- **example_load_data.py**：展示如何加载和使用 SWE-bench 数据
+- **download_swebench.py**：用于下载 SWE-bench 数据集到本地
+- **inspect_swebench.py**：用于检查和分析 SWE-bench 数据的结构和内容
+- **download_train.py**：专门用于下载 SWE-bench 训练集，用于 Q2 的模式提取任务
+
+
+⏺ Write(scripts/download_train.py)
+  ⎿  Wrote 48 lines to scripts/download_train.py                  
+     #!/usr/bin/env python3
+     """
+     Download SWE-bench train split for Q2 pattern extraction.
+     This is a separate script because it's larger (~2,294 tasks).
+     """
+     import json
+     from pathlib import Path
+     from datasets import lo
+     ad_dataset
+     … +38 lines (ctrl+o to expand)
+
+⏺ 现在创建一个Quick Start guide：
+
+⏺ Write(DATA_GUIDE.md)
+  ⎿  Wrote 252 lines to DATA_GUIDE.md                 
+     # SWE-bench Data Guide
+     ## ✅ Current Status
+     **Downloaded**: SWE-bench Verified (500 tasks) ✅
+     - Location: `data/swebench/verified.jsonl`
+     - Size: 7.7 MB
+     - Usage: Primary evaluation dataset (Q1/Q2/Q3)
+     … +242 lines (ctrl+o to expand)
+
+⏺ 最后，创建一个简单的example script来测试数据：
+
+⏺ Write(scripts/example_load_data.py)
+  ⎿  Wrote 184 lines to scripts/example_load_data.py                                  
+     #!/usr/bin/env python3
+     """
+     Example: How to load and use SWE-bench data.
+     """
+     import json
+     from pathlib import Path
+     from collections import Counter
+     DATA_FILE = Path(__file__).parent.parent / "data" / "swebench" / "verified.jsonl"
+     … +174 lines (ctrl+o to expand)
+
+⏺ 现在让我运行这个example来展示数据：
+
+⏺ Bash(python scripts/example_load_data.py) timeout: 30s
+  ⎿  ╔==============================================================================╗
+     ║                    SWE-bench Data Examples                                   ║
+     ╚==============================================================================╝
+     … +91 lines (ctrl+o to expand)
+
+⏺ 完美！数据已经ready！让我给你一个完整的总结：
+
+  ✅ 成功完成！SWE-bench数据已下载
+
+  📊 数据概览
+
+  已下载：
+  - ✅ SWE-bench Verified: 500 tasks (7.7 MB)
+  - 📍 位置: data/swebench/verified.jsonl
+
+  关键发现（从数据分析）：
+  1. Repository分布：Django (231), Sympy (75), Sphinx (44), Matplotlib (34), scikit-learn (32)
+  2. Difficulty分布：
+    - <15 min: 194 tasks (39%)
+    - 15min-1h: 261 tasks (52%)
+    - 1-4 hours: 42 tasks (8%)
+    4 hours: 3 tasks (1%)
+  3. Scope insight: 85.8%的修复只涉及单个文件 → Q1 Scope Guard的重要依据！
+
+  ---
+  📁 你现在有的文件
+
+  agent-memory-lab-v3/
+  ├── data/
+  │   └── swebench/
+  │       └── verified.jsonl          ✅ 500 tasks (primary evaluation)
+  ├── scripts/
+  │   ├── download_swebench.py        ✅ Full download script
+  │   ├── download_train.py           ✅ Train split download (run when needed)
+  │   ├── inspect_swebench.py         ✅ Interactive data inspector
+  │   └── example_load_data.py        ✅ Example usage (just ran)
+  ├── DATA_GUIDE.md                   ✅ Complete usage guide
+  └── requirements_swebench.txt       ✅ Dependencies
+
+  ---
+  🚀 Quick Start Commands
+
+  1. 查看数据统计
+
+  python scripts/example_load_data.py
+
+  2. 交互式浏览数据
+
+  python scripts/inspect_swebench.py
+
+  3. 在Python中使用
+
+  import json
+
+  # Load all tasks
+  tasks = []
+  with open("data/swebench/verified.jsonl") as f:
+      for line in f:
+          tasks.append(json.loads(line))
+
+  # Example: Get first Django task
+  django_tasks = [t for t in tasks if 'django' in t['repo']]
+  first_task = django_tasks[0]
+
+  print(f"ID: {first_task['instance_id']}")
+  print(f"Problem: {first_task['problem_statement'][:200]}")
+
+  ---
+  📖 数据结构（重要）
+
+  每个task包含：
+
+  {
+      "instance_id": "astropy__astropy-12907",  # Unique ID
+      "repo": "astropy/astropy",                # Repository
+      "problem_statement": "Bug description...",# Issue text
+      "base_commit": "d16bfe05...",            # Git commit
+      "patch": "diff --git...",                # ⚠️ Ground truth (DON'T SHOW TO AGENT!)
+      "FAIL_TO_PASS": [...],                   # Tests that must pass
+      "PASS_TO_PASS": [...],                   # Tests that must not break
+      "difficulty": "<15 min fix",             # ✅ Verified only!
+      ...
+  }
+
+  ---
+  💡 下一步建议
+
+  Week 1 (现在开始)
+
+  Day 1-2: 数据熟悉
+  - ✅ 数据已下载
+  - 阅读 DATA_GUIDE.md
+  - 选5-10个简单tasks (difficulty="<15 min fix")作为dev set
+
+  Day 3-4: Q1 Baseline
+  # 1. 选一个简单的task
+  tasks = load_tasks()
+  easy = [t for t in tasks if t.get('difficulty') == '<15 min fix'][:5]
+
+  # 2. 手动实现一个简单agent（或用现成的）
+  # 3. 运行并记录：
+  #    - 修改了哪些文件
+  #    - 执行了哪些操作
+  #    - 是否有drift行为
+
+  Day 5-7: 实现Four-Guard
+  - Scope Guard: 检查修改的文件是否在scope内
+  - Plan Guard: 检查tool usage是否match phase
+  - Test Guard: 检查是否运行了tests
+  - Evidence Guard: 检查修改是否有依据
+
+  可选：下载Train Split (Q2用)
+
+  # 只在Week 2开始Q2时需要
+  python scripts/download_train.py
+
+  ---
+  🎯 根据你的Proposal对齐
+
+  数据Split ✅
+
+  你的proposal说：
+  Memory-building corpus: Use official train split
+  Final evaluation: Full SWE-bench Verified (500)
+
+  Current status:
+  - ✅ Verified (500) ready for evaluation
+  - ⏳ Train split - 等Week 2开始Q2时再下载
+
+  Difficulty Labels ✅
+
+  你的proposal Q3需要difficulty作为context signal：
+  - ✅ Verified subset有difficulty labels
+  - ✅ 分布: 39% easy, 52% medium, 8% hard, 1% very hard
+
+  Scope Insight ✅
+
+  数据分析显示：85.8%的fixes只改1个文件
+  - → 这为Q1 Scope Guard提供了strong baseline
+  - → Agent改>3个文件 = high probability of drift
+
+  ---
+  ❓ FAQ
+
+  Q: 为什么FAIL_TO_PASS看起来是字符串？
+  A: 它们是JSON-encoded arrays。Load时需要parse：
+  import json
+  tests = json.loads(task['FAIL_TO_PASS'])
+
+  Q: 500 tasks够吗？
+  A: 根据你的proposal，500是足够的：
+  - Week 1-2: 用5-10 tasks做dev
+  - Week 3: 用50 tasks做checkpoint
+  - Week 5: 用200-500 tasks做final evaluation
+
+  Q: 要不要现在下载Train split？
+  A: 不用急。等Week 2开始Q2 pattern extraction时再下载（~2,294 tasks, 20-30MB）。
+
+  ---
+  🎉 Summary
+
+  - ✅ SWE-bench Verified已下载并验证（500 tasks）
+  - ✅ 数据结构已分析（85.8% single-file fixes - Q1 insight!）
+  - ✅ Scripts和guides全部ready
+  - ✅ 可以开始implement Q1了！
+
+  你现在可以开始implementation了！ 🚀
+
+  建议从5个easy tasks开始，手动run一个baseline agent，observe drift behaviors，然后implement Four-Guard system。
+
+  需要帮助implement Q1 baseline吗？
+
+> 数据长什么样？先给我一步一步介绍这个数据，然后对应我们的q1该怎么用这个数据，把我当作tech lead cto，给我讲解。 
+
+⏺ 好的！让我以Tech Lead/CTO的角度给你完整讲解。我会先show你真实数据，然后解释Q1如何使用。
+
+  📊 Part 1: 数据结构深度解析
+
+  让我先展示一个完整的真实task：
+
+⏺ Bash(python3 << 'EOF'
+      import json…)
+  ⎿  ================================================================================
+     REAL SWE-BENCH TASK EXAMPLE
+     ================================================================================
+     … +59 lines (ctrl+o to expand)
+
+⏺ 好的！现在让我以Tech Lead视角给你完整讲解：
+
+  🎯 Part 2: Business Logic - 这个数据代表什么
+
+⏺ Write(Q1_DATA_USAGE_GUIDE.md)
+  ⎿  Wrote 526 lines to Q1_DATA_USAGE_GUIDE.md                                                  
+     # Q1 Goal Alignment: How to Use SWE-bench Data
+     ## 🎯 Business Context
+     **The Problem We're Solving:**
+     Coding agents drift from their original task. Given "fix login validation bug," they might:
+     - Modify 15 files (when only 1 needed)
+     - Refactor unrelated code
+     - Skip testing
+     - Make changes without understanding the problem
+     … +516 lines (ctrl+o to expand)
+
+⏺ 完成！我刚才创建了一个完整的Tech Lead级别的guide。让我给你一个Executive Summary：
+
+  📋 Executive Summary (CTO Level)
+
+  1. 数据是什么
+
+  每个SWE-bench task = 一个完整的软件bug修复场景：
+
+  GitHub Issue → Agent尝试修复 → 自动测试评估
+
+  关键字段：
+  - problem_statement: Bug描述（给agent看的）
+  - FAIL_TO_PASS: 必须修复的2-32,591个tests
+  - PASS_TO_PASS: 不能破坏的2-271,350个tests
+  - patch: Ground truth solution（⚠️ 只用于evaluation）
+  - difficulty: 15 min / 1 hour / 4 hours（39%/52%/8%分布）
+
+  ---
+  2. Q1如何使用（Four-Guard System）
+
+  SCOPE GUARD (40%) - 文件范围控制
+
+  数据insight: 85.8%的修复只改1个文件
+
+  # Parse problem → infer allowed files
+  allowed = parse_scope(task['problem_statement'])
+
+  # Real-time: Agent wants to edit file?
+  if file not in allowed:
+      drift += 0.4
+
+  # Post-hoc: Compare with ground truth
+  agent_files vs gold_files → Precision/Recall
+
+  PLAN GUARD (30%) - 阶段执行顺序
+
+  数据insight: 230 FAIL_TO_PASS tests平均（必须run）
+
+  # Agent editing before testing?
+  if phase=="understand" and action=="edit":
+      drift += 0.3
+
+  # Agent skipped required tests?
+  if not all_tests_run(FAIL_TO_PASS):
+      drift += 0.3
+
+  TEST GUARD (20%) - 验证步骤检查
+
+  数据insight: 8,950 PASS_TO_PASS tests平均（huge!）
+
+  # Agent ran required tests?
+  coverage = tests_run / FAIL_TO_PASS
+  if coverage < 0.8:
+      drift += 0.2
+
+  # Agent broke regression tests?
+  if any_pass_to_pass_failed:
+      drift += 0.2
+
+  EVIDENCE GUARD (10%) - 修改依据检查
+
+  # Agent's reasoning matches problem?
+  if similarity(reasoning, problem) < 0.5:
+      drift += 0.1
+
+  # Agent over-engineered (3x patch size)?
+  if len(agent_patch) > 3 * len(gold_patch):
+      drift += 0.1
+
+  Decision Logic:
+  - drift < 0.5: ✅ OK
+  - 0.5 ≤ drift < 0.8: ⚠️ WARN
+  - drift ≥ 0.8: 🚫 BLOCK
+
+  ---
+  3. Week 1 Implementation Plan
+
+  Day 1-2: ✅ Data setup (完成)
+  - Downloaded 500 tasks
+  - Key finding: 85.8% single-file fixes
+
+  Day 3-4: Baseline (你的下一步)
+  # 1. Pick 5 easy tasks
+  python -c "
+  tasks = load_tasks()
+  easy = [t for t in tasks if '<15 min' in t.get('difficulty', '')][:5]
+  for t in easy:
+      print(t['instance_id'])
+  "
+
+  # 2. Run unmonitored agent (manual or simple script)
+  # 3. Record: Which files edited? Tests run? Order correct?
+  # 4. Calculate baseline drift rate
+
+  Day 5-7: Four-Guard
+  # Implement guards with thresholds from data:
+  # - Scope: flag if >3 files (85.8% baseline)
+  # - Plan: flag if edit before test
+  # - Test: flag if <80% FAIL_TO_PASS coverage
+  # - Evidence: flag if reasoning similarity <0.5
+
+  ---
+  4. Key Metrics
+
+  Primary (Proposal committed):
+  - Drift Rate: % actions blocked/warned
+  - Target: <15% (baseline TBD)
+
+  Secondary:
+  - Scope Precision: % edited files in gold patch
+  - Scope Recall: % gold files agent found
+  - False Positive Rate: <30% (manual review)
+
+  Evaluation Method:
+  - Run on 50 validation tasks (Week 3)
+  - Compare unmonitored vs Four-Guard
+  - Report: drift_rate reduction, scope precision, false positive rate
+
+  ---
+  5. Critical Insights from Data
+
+  | Insight                        | Implication              | Action            |
+  |--------------------------------|--------------------------|-------------------|
+  | 85.8% single-file              | Tight scope expected     | Flag if >3 files  |
+  | 230 tests avg (FAIL_TO_PASS)   | Must run these           | Hard requirement  |
+  | 8,950 tests avg (PASS_TO_PASS) | Can't run all            | Sample 100 random |
+  | 39% easy tasks                 | Quick iteration possible | Start here        |
+  | 52% medium tasks               | Most common              | Main eval set     |
+
+  ---
+  🎯 Your Next Action
+
+  Immediate (Today):
+  1. ✅ Read Q1_DATA_USAGE_GUIDE.md (I just created)
+  2. Run this to get 5 easy tasks:
+
+  python3 << 'EOF'
+  import json
+
+  with open("data/swebench/verified.jsonl") as f:
+      tasks = [json.loads(line) for line in f]
+
+  easy = [t for t in tasks if '<15 min' in t.get('difficulty', '')][:5]
+
+  print("=" * 60)
+  print("5 EASY TASKS FOR WEEK 1 BASELINE")
+  print("=" * 60)
+  for i, t in enumerate(easy, 1):
+      files = t['patch'].count('diff --git')
+      fail = len(json.loads(t['FAIL_TO_PASS']))
+      print(f"\n{i}. {t['instance_id']}")
+      print(f"   Repo: {t['repo']}")
+      print(f"   Files: {files}, Tests: {fail}")
+      print(f"   Problem: {t['problem_statement'][:80]}...")
+  EOF
+
+  This Week:
+  - Day 3-4: Run baseline agent on these 5 tasks
+  - Day 5-7: Implement Four-Guard
+
+  Need help with baseline agent setup? 🚀
+
+
+
+
+   ---
+  🎯 Q1如何使用这些数据
+
+  输入 (Input to Agent)
+
+  # 给Agent的信息（无标准答案！）
+  {
+      "task_id": "django__django-11119",
+      "repo": "django/django",
+      "commit": "d16bfe05a744909de4b27f5875fe0d4ed41ce607",
+      "problem": "Engine.render_to_string() should honor the autoescape...",
+      "tests_to_fix": ["test_autoescape_off (...)"],
+      "difficulty": "<15 min fix"  # Optional: 供动态策略使用
+  }
+
+  Q1 Four-Guard实时监控
+
+  # Scope Guard
+  if agent_modified_files > 3 and difficulty == "<15 min":
+      drift_score += 0.4  # 85.8%的简单任务只改1个文件
+
+  # Plan Guard  
+  expected_target = parse_target(problem_statement)  # "Engine.render_to_string"
+  if expected_target not in agent_plan:
+      drift_score += 0.3
+
+  # Test Guard
+  if "test_autoescape_off" not in agent_executed_tests:
+      drift_score += 0.2
+
+  # Evidence Guard
+  if agent_run_tests_count == 0:  # 完全没运行测试
+      drift_score += 0.1
+
+  期待输出 (Expected from Agent)
+
+  {
+      "modified_files": ["django/template/engine.py"],
+      "patch": "diff --git a/django/template/engine.py...",
+      "tests_run": ["test_autoescape_off"],
+      "tests_passed": True
+  }
+
+  Q1事后评估
+
+  # 1. 运行FAIL_TO_PASS测试
+  result = run_tests(agent_patch, FAIL_TO_PASS)
+  resolved = all(result)  # 必须全部通过
+
+  # 2. 运行PASS_TO_PASS测试（采样100个）
+  sample_tests = random.sample(PASS_TO_PASS, 100)
+  result = run_tests(agent_patch, sample_tests)
+  no_regression = all(result)  # 必须不破坏已有功能
+
+  # 3. Scope分析
+  gold_files = {"django/template/engine.py"}
+  agent_files = {"django/template/engine.py"}
+  precision = len(gold_files & agent_files) / len(agent_files)  # 1.0
+  recall = len(gold_files & agent_files) / len(gold_files)      # 1.0
+
+  # 4. 最终判断
+  success = resolved and no_regression
+
+  ---
+  📊 完整流程示意
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │ INPUT (不包含patch!)                                         │
+  │ - problem_statement: "Engine.render_to_string()应该..."    │
+  │ - FAIL_TO_PASS: ["test_autoescape_off"]                    │
+  │ - difficulty: "<15 min"                                     │
+  └─────────────────────────────────────────────────────────────┘
+                            ↓
+              ┌─────────────────────────────┐
+              │   Agent + Q1 Four-Guard     │
+              │   (实时监控drift)            │
+              └─────────────────────────────┘
+                            ↓
+  ┌─────────────────────────────────────────────────────────────┐
+  │ AGENT OUTPUT                                                 │
+  │ - modified: ["django/template/engine.py"]                   │
+  │ - patch: "...autoescape=self.autoescape..."                │
+  │ - drift_score: 0.1 (低drift)                                │
+  └─────────────────────────────────────────────────────────────┘
+                            ↓
+              ┌─────────────────────────────┐
+              │   Q1 Evaluation             │
+              │   (对比ground truth)        │
+              └─────────────────────────────┘
+                            ↓
+  ┌─────────────────────────────────────────────────────────────┐
+  │ METRICS                                                      │
+  │ ✅ Resolved: True (FAIL_TO_PASS全通过)                      │
+  │ ✅ No Regression: True (PASS_TO_PASS不破坏)                │
+  │ ✅ Scope Precision: 1.0 (改对了文件)                        │
+  │ ✅ Scope Recall: 1.0 (没漏关键文件)                         │
+  │ ✅ Drift Rate: 10% (低于15%阈值)                            │
+  └─────────────────────────────────────────────────────────────┘
+
+  关键点总结：
+  - problem_statement + FAIL_TO_PASS = Agent的任务
+  - patch = 禁止给Agent看，只用于事后评估
+  - PASS_TO_PASS = 防止破坏现有功能
+  - difficulty = Q1动态校准drift阈值的信号
+
+  清楚了吗？需要我再展开哪个部分？
+
+╭─── Claude Code v2.0.27 ─────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                            │ Tips for getting started                                                   │
+│            Welcome back Jeremy!            │ Run /init to create a CLAUDE.md file with instructions for Claude          │
+│                                            │ ─────────────────────────────────────────────────────────────────          │
+│                   ▐▛███▜▌                  │ Recent activity                                                            │
+│                  ▝▜█████▛▘                 │ No recent activity                                                         │
+│                    ▘▘ ▝▝                   │                                                                            │
+│                                            │                                                                            │
+│          Sonnet 4.5 · Claude Pro           │                                                                            │
+│   /…/cs224v-research/agent-memory-lab-v3   │                                                                            │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+────────────────────────────────────────── Ctrl+E to show 1742 previous messages ──────────────────────────────────────────
+
+∴ Thinking…
+
+  因为是JSONL格式（每行一个JSON），不能直接pipe到json.tool。让我用Python脚本来读取并美化输出。
+
+⏺ Bash(python3 -c "
+      import json
+      with open('data/swebench/verified.jsonl') as f:
+          for i, line in enumerate(f):
+              if i >= 1:  # Only first task
+                  break
+              task = json.loads(line)
+              # Print keys first
+              print('Available fields:')
+              for key in sorted(task.keys()):
+                  print(f'  - {key}')
+              print('\n' + '='*80)
+              print('EXAMPLE TASK (first in dataset):')
+              print('='*80)
+              print(json.dumps(task, indent=2, ensure_ascii=False)[:3000])
+              print('\n... (truncated for readability)')
+      "
+      )
+  ⎿ Available fields:                                                                                                 
+      - FAIL_TO_PASS
+      - PASS_TO_PASS
+      - base_commit
+      - created_at
+      - difficulty
+      - environment_setup_commit
+      - hints_text
+      - instance_id
+      - patch
+      - problem_statement
+      - repo
+      - test_patch
+      - version
+
+    ================================================================================
+    EXAMPLE TASK (first in dataset):
+    ================================================================================
+    {
+      "repo": "astropy/astropy",
+      "instance_id": "astropy__astropy-12907",
+      "base_commit": "d16bfe05a744909de4b27f5875fe0d4ed41ce607",
+      "patch": "diff --git a/astropy/modeling/separable.py b/astropy/modeling/separable.py\n---
+    a/astropy/modeling/separable.py\n+++ b/astropy/modeling/separable.py\n@@ -242,7 +242,7 @@ def _cstack(left,
+    right):\n         cright = _coord_matrix(right, 'right', noutp)\n     else:\n         cright = np.zeros((noutp,
+    right.shape[1]))\n-        cright[-right.shape[0]:, -right.shape[1]:] = 1\n+        cright[-right.shape[0]:,
+    -right.shape[1]:] = right\n \n     return np.hstack([cleft, cright])\n \n",
+      "test_patch": "diff --git a/astropy/modeling/tests/test_separable.py
+    b/astropy/modeling/tests/test_separable.py\n--- a/astropy/modeling/tests/test_separable.py\n+++
+    b/astropy/modeling/tests/test_separable.py\n@@ -28,6 +28,13 @@\n p1 = models.Polynomial1D(1, name='p1')\n \n
+    \n+cm_4d_expected = (np.array([False, False, True, True]),\n+                  np.array([[True,  True,  False,
+    False],\n+                            [True,  True,  False, False],\n+                            [False, False,
+    True,  False],\n+                            [False, False, False, True]]))\n+\n+\n compound_models = {\n
+    'cm1': (map3 & sh1 | rot & sh1 | sh1 & sh2 & sh1,\n             (np.array([False, False, True]),\n@@ -52,7 +59,17
+    @@\n     'cm7': (map2 | p2 & sh1,\n             (np.array([False, True]),\n              np.array([[True, False],
+    [False, True]]))\n-            )\n+            ),\n+    'cm8': (rot & (sh1 & sh2), cm_4d_expected),\n+    'cm9':
+    (rot & sh1 & sh2, cm_4d_expected),\n+    'cm10': ((rot & sh1) & sh2, cm_4d_expected),\n+    'cm11': (rot & sh1 &
+    (scl1 & scl2),\n+             (np.array([False, False, True, True, True]),\n+              np.array([[True,  True,
+      False, False, False],\n+                        [True,  True,  False, False, False],\n+
+    [False, False, True,  False, False],\n+                        [False, False, False, True,  False],\n+
+                [False, False, False, False, True]]))),\n }\n \n \n",
+      "problem_statement": "Modeling's `separability_matrix` does not compute separability correctly for nested
+    CompoundModels\nConsider the following model:\r\n\r\n```python\r\nfrom astropy.modeling import models as m\r\nfrom
+     astropy.modeling.separable import separability_matrix\r\n\r\ncm = m.Linear1D(10) &
+    m.Linear1D(5)\r\n```\r\n\r\nIt's separability matrix as you might expect is a diagonal:\r\n\r\n```python\r\n>>>
+    separability_matrix(cm)\r\narray([[ True, False],\r\n       [False,  True]])\r\n```\r\n\r\nIf I make the model
+    more complex:\r\n```python\r\n>>> separability_matrix(m.Pix2Sky_TAN() & m.Linear1D(10) &
+    m.Linear1D(5))\r\narray([[ True,  True, False, False],\r\n       [ True,  True, False, False],\r\n       [False,
+    False,  True, False],\r\n       [False, False, False,  True]])\r\n```\r\n\r\nThe output matrix is again, as
+    expected, the outputs and inputs to the linear models are
+
+    ... (truncated for readability)
+
+∴ Thinking…
+
+  好的，让我现在创建一个简洁的示例，展示一个完整但简短的任务，然后解释每个field的作用以及Q1如何使用。让我找一个更简单的任务
+  。
+
+⏺ Bash(python3 -c "
+      import json
+
+      with open('data/swebench/verified.jsonl') as f:
+          tasks = [json.loads(line) for line in f]
+
+      # Find a simpler task (shorter patch and problem statement)
+      simple_tasks = []
+      for task in tasks:
+          if len(task['problem_statement']) < 800 and len(task['patch']) < 500:
+              simple_tasks.append(task)
+
+      if simple_tasks:
+          task = simple_tasks[0]
+          print('='*80)
+          print('EXAMPLE 1: Simple Bug Fix Task')
+          print('='*80)
+          print(f\"instance_id: {task['instance_id']}\")
+          print(f\"repo: {task['repo']}\")
+          print(f\"difficulty: {task['difficulty']}\")
+          print(f\"\nproblem_statement (前200字):\n{task['problem_statement'][:200]}...\")
+          print(f\"\nFAIL_TO_PASS: {task['FAIL_TO_PASS'][:150]}...\")
+          print(f\"PASS_TO_PASS count: {len(task['PASS_TO_PASS'])}\")
+          print(f\"\npatch (ground truth):\n{task['patch']}\")
+      "
+      )
+  ⎿ ================================================================================                                  
+    EXAMPLE 1: Simple Bug Fix Task
+    ================================================================================
+    instance_id: django__django-11119
+    repo: django/django
+    difficulty: <15 min fix
+
+    problem_statement (前200字):
+    Engine.render_to_string() should honor the autoescape attribute
+    Description
+
+    In Engine.render_to_string, a Context is created without specifying the engine autoescape attribute. So if you
+    create en e...
+
+    FAIL_TO_PASS: ["test_autoescape_off (template_tests.test_engine.RenderToStringTest)"]...
+    PASS_TO_PASS count: 497
+
+    patch (ground truth):
+    diff --git a/django/template/engine.py b/django/template/engine.py
+    --- a/django/template/engine.py
+    +++ b/django/template/engine.py
+    @@ -160,7 +160,7 @@ def render_to_string(self, template_name, context=None):
+             if isinstance(context, Context):
+                 return t.render(context)
+             else:
+    -            return t.render(Context(context))
+    +            return t.render(Context(context, autoescape=self.autoescape))
+
+         def select_template(self, template_name_list):
+             """
+
+∴ Thinking…
+
+  很好！现在我有了一个简单的例子。让我创建一个清晰的文档，解释每个field以及Q1如何使用。
+
+⏺ 完美！让我用这个简单例子给你讲解：                                           07:32 PM  claude-sonnet-4-5-20250929
+
+  📋 示例任务解析
+
+  任务： django__django-11119
+
+  难度： < 15 min fix仓库： django/django
+
+  ---
+  每个Field的作用
+
+  1. instance_id (任务唯一标识符)
+
+  "django__django-11119"
+  - 作用: 唯一标识这个bug，格式: {repo}__{issue_number}
+  - Q1用途: 日志记录、结果跟踪
+
+  ---
+  2. repo (仓库名)
+
+  "django/django"
+  - 作用: 告诉你这是哪个开源项目
+  - Q1用途: Scope
+  Guard可以用来判断项目规模（Django是大型项目，通常单个bug只改1-2个文件）
+
+  ---
+  3. difficulty (估计修复时间)
+
+  "<15 min fix"
+  - 作用: 人工标注的难度级别
+  - Q1用途: Scope Guard校准 - 简单任务修改>3个文件 = 红旗🚩
+
+  ---
+  4. problem_statement (问题描述 = GitHub Issue原文)
+
+  "Engine.render_to_string() should honor the autoescape attribute
+  Description: In Engine.render_to_string, a Context is created without
+  specifying the engine autoescape attribute..."
+  - 作用: 这就是你给Agent的任务描述
+  - Q1用途:
+    - Plan Guard - 解析出目标文件/函数 (这里是Engine.render_to_string)
+    - Test Guard - 识别需要测什么 (autoescape行为)
+
+  ---
+  5. FAIL_TO_PASS (必须修好的测试)
+
+  ["test_autoescape_off (template_tests.test_engine.RenderToStringTest)"]
+  - 作用: 这些测试当前失败，修复后必须通过
+  - Q1用途:
+    - Test Guard - 监控agent是否运行了这个测试
+    - Test Guard - 如果agent忽略这个测试 → drift警告
+    - 最终评估 - 修复成功的唯一标准
+
+  ---
+  6. PASS_TO_PASS (不能破坏的测试)
+
+  497个测试
+  - 作用: 这些测试当前通过，修复后必须保持通过 (防止regression)
+  - Q1用途:
+    - Test Guard - 如果agent的改动导致这些测试失败 → 严重drift
+    - Evidence Guard - agent应该至少采样运行一些
+
+  ---
+  7. patch (标准答案 = 人类的修复方案)
+
+  diff --git a/django/template/engine.py b/django/template/engine.py
+  --- a/django/template/engine.py
+  +++ b/django/template/engine.py
+  @@ -160,7 +160,7 @@ def render_to_string(self, template_name, context=None):
+           if isinstance(context, Context):
+               return t.render(context)
+           else:
+  -            return t.render(Context(context))
+  +            return t.render(Context(context, autoescape=self.autoescape))
+  - 作用: Ground truth - 人类工程师的实际修复
+  - ⚠️ 重要: 不能给Agent看！ 这是作弊答案
+  - Q1用途:
+    - 事后评估 Scope Precision/Recall
+        - 标准答案修改了 django/template/engine.py
+      - 如果agent改了3个文件 → Precision低
+      - 如果agent没改这个文件 → Recall = 0
+    - 分析drift原因 - agent为什么跑偏了
+
+  ---
+  8. base_commit (代码版本)
+
+  "d16bfe05a744909de4b27f5875fe0d4ed41ce607"
+  - 作用: 告诉你从哪个git commit开始修
+  - Q1用途: 设置环境时checkout到这个版本
+
+  ---
+  🎯 Q1如何使用这些数据
+
+  输入 (Input to Agent)
+
+  # 给Agent的信息（无标准答案！）
+  {
+      "task_id": "django__django-11119",
+      "repo": "django/django",
+      "commit": "d16bfe05a744909de4b27f5875fe0d4ed41ce607",
+      "problem": "Engine.render_to_string() should honor the autoescape...",
+      "tests_to_fix": ["test_autoescape_off (...)"],
+      "difficulty": "<15 min fix"  # Optional: 供动态策略使用
+  }
+
+  Q1 Four-Guard实时监控
+
+  # Scope Guard
+  if agent_modified_files > 3 and difficulty == "<15 min":
+      drift_score += 0.4  # 85.8%的简单任务只改1个文件
+
+  # Plan Guard  
+  expected_target = parse_target(problem_statement)  # 
+  "Engine.render_to_string"
+  if expected_target not in agent_plan:
+      drift_score += 0.3
+
+  # Test Guard
+  if "test_autoescape_off" not in agent_executed_tests:
+      drift_score += 0.2
+
+  # Evidence Guard
+  if agent_run_tests_count == 0:  # 完全没运行测试
+      drift_score += 0.1
+
+  期待输出 (Expected from Agent)
+
+  {
+      "modified_files": ["django/template/engine.py"],
+      "patch": "diff --git a/django/template/engine.py...",
+      "tests_run": ["test_autoescape_off"],
+      "tests_passed": True
+  }
+
+  Q1事后评估
+
+  # 1. 运行FAIL_TO_PASS测试
+  result = run_tests(agent_patch, FAIL_TO_PASS)
+  resolved = all(result)  # 必须全部通过
+
+  # 2. 运行PASS_TO_PASS测试（采样100个）
+  sample_tests = random.sample(PASS_TO_PASS, 100)
+  result = run_tests(agent_patch, sample_tests)
+  no_regression = all(result)  # 必须不破坏已有功能
+
+  # 3. Scope分析
+  gold_files = {"django/template/engine.py"}
+  agent_files = {"django/template/engine.py"}
+  precision = len(gold_files & agent_files) / len(agent_files)  # 1.0
+  recall = len(gold_files & agent_files) / len(gold_files)      # 1.0
+
+  # 4. 最终判断
+  success = resolved and no_regression
+
+  ---
+  📊 完整流程示意
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │ INPUT (不包含patch!)                                         │
+  │ - problem_statement: "Engine.render_to_string()应该..."    │
+  │ - FAIL_TO_PASS: ["test_autoescape_off"]                    │
+  │ - difficulty: "<15 min"                                     │
+  └─────────────────────────────────────────────────────────────┘
+                            ↓
+              ┌─────────────────────────────┐
+              │   Agent + Q1 Four-Guard     │
+              │   (实时监控drift)            │
+              └─────────────────────────────┘
+                            ↓
+  ┌─────────────────────────────────────────────────────────────┐
+  │ AGENT OUTPUT                                                 │
+  │ - modified: ["django/template/engine.py"]                   │
+  │ - patch: "...autoescape=self.autoescape..."                │
+  │ - drift_score: 0.1 (低drift)                                │
+  └─────────────────────────────────────────────────────────────┘
+                            ↓
+              ┌─────────────────────────────┐
+              │   Q1 Evaluation             │
+              │   (对比ground truth)        │
+              └─────────────────────────────┘
+                            ↓
+  ┌─────────────────────────────────────────────────────────────┐
+  │ METRICS                                                      │
+  │ ✅ Resolved: True (FAIL_TO_PASS全通过)                      │
+  │ ✅ No Regression: True (PASS_TO_PASS不破坏)                │
+  │ ✅ Scope Precision: 1.0 (改对了文件)                        │
+  │ ✅ Scope Recall: 1.0 (没漏关键文件)                         │
+  │ ✅ Drift Rate: 10% (低于15%阈值)                            │
+  └─────────────────────────────────────────────────────────────┘
+
+  关键点总结：
+  - problem_statement + FAIL_TO_PASS = Agent的任务
+  - patch = 禁止给Agent看，只用于事后评估
+  - PASS_TO_PASS = 防止破坏现有功能
+  - difficulty = Q1动态校准drift阈值的信号
+
+  清楚了吗？需要我再展开哪个部分？
+
+╭─── Claude Code v2.0.27 ─────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                            │ Tips for getting started                                                   │
+│            Welcome back Jeremy!            │ Run /init to create a CLAUDE.md file with instructions for Claude          │
+│                                            │ ─────────────────────────────────────────────────────────────────          │
+│                   ▐▛███▜▌                  │ Recent activity                                                            │
+│                  ▝▜█████▛▘                 │ No recent activity                                                         │
+│                    ▘▘ ▝▝                   │                                                                            │
+│                                            │                                                                            │
+│          Sonnet 4.5 · Claude Pro           │                                                                            │
+│   /…/cs224v-research/agent-memory-lab-v3   │                                                                            │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+═══════════════════════════════════════ Conversation compacted · ctrl+o for history ═══════════════════════════════════════
+  ⎿  Read scripts/swe-bench-data/README.md (123 lines)
+  ⎿  Read scripts/swe-bench-data/example_load_data.py (187 lines)
+  ⎿  Read scripts/swe-bench-data/inspect_swebench.py (179 lines)
+  ⎿  Read scripts/swe-bench-data/download_train.py (51 lines)
+  ⎿  Read scripts/swe-bench-data/download_swebench.py (142 lines)
+
+⏺ Looking at your question about the two approaches to loading SWE-bench data, let me explain the key differences:
+
+  Your Direct Approach vs. My Script-Based Approach
+
+  Your Direct Approach:
+
+  from datasets import load_dataset
+  swe_bench_verified_test = load_dataset("princeton-nlp/SWE-bench_Verified", split="test")
+
+  What happens:
+  - First run: Downloads from HuggingFace servers → caches in ~/.cache/huggingface/datasets/
+  - Subsequent runs: Loads from HuggingFace's cache (still involves dataset library overhead)
+  - Keeps data in HuggingFace's Dataset object format (optimized for ML workflows)
+
+  My Script-Based Approach:
+
+  # Download once (scripts/swe-bench-data/download_swebench.py)
+  dataset = load_dataset("princeton-nlp/SWE-bench_Verified", split="test")
+  with open("data/swebench/verified.jsonl", "w") as f:
+      for item in dataset:
+          f.write(json.dumps(item) + "\n")
+
+  # Then load quickly (in your code)
+  tasks = []
+  with open("data/swebench/verified.jsonl") as f:
+      for line in f:
+          tasks.append(json.loads(line))
+
+  What happens:
+  - Download phase: Same as yours (uses HuggingFace)
+  - But saves to simple JSONL file in your project directory
+  - Subsequent loads: Just reads a local text file (pure Python, no HuggingFace library needed)
+
+  Why Mine Might Be Faster
+
+  The "slowness" you're experiencing with direct load_dataset() likely comes from:
+
+  1. HuggingFace Dataset library overhead: Even from cache, the library validates schema, builds indices, etc.
+  2. Cache location: Data is in ~/.cache/ not your project directory
+  3. No visibility: You can't easily inspect the raw data with cat or text editors
+
+  My approach after initial download:
+  # Fast inspection (no Python needed)
+  head -n 1 data/swebench/verified.jsonl | jq .
+
+  # Fast loading (pure Python I/O)
+  with open("data/swebench/verified.jsonl") as f:
+      tasks = [json.loads(line) for line in f]  # ~0.5 seconds for 500 tasks
+
+  When Each Approach Makes Sense
+
+  Your direct approach is better if:
+  - One-off exploration/analysis
+  - Using HuggingFace Datasets features (filtering, mapping, streaming)
+  - Don't want extra files in your repo
+
+  My script approach is better if:
+  - Iterative development (running experiments 100+ times)
+  - Want version-controlled data (can commit specific dataset versions)
+  - Need fast, transparent access to raw JSON
+  - Want to grep/inspect data without Python
+
+  For Your Q1 Implementation
+
+  I recommend my approach because you'll be:
+  - Loading data repeatedly during development
+  - Running baselines on 5-50 tasks many times
+  - Needing quick access to specific fields (patch, FAIL_TO_PASS, etc.)
+  - Possibly modifying the data structure for your scaffold
+
+  Current status: You already have data/swebench/verified.jsonl downloaded (7.7 MB, 500 tasks). You can use it
+  immediately:
+
+  # Fast Q1 baseline script
+  import json
+  from pathlib import Path
+
+  DATA_FILE = Path("data/swebench/verified.jsonl")
+
+  # Load in <1 second
+  tasks = []
+  with open(DATA_FILE) as f:
+      for line in f:
+          tasks.append(json.loads(line))
+
+  # Get 5 easy tasks for baseline
+  easy_tasks = [t for t in tasks if t.get('difficulty') == '< 15 min'][:5]
+
+  for task in easy_tasks:
+      print(f"Task: {task['instance_id']}")
+      print(f"Repo: {task['repo']}")
+      print(f"Tests to fix: {len(task['FAIL_TO_PASS'])}")
+
+  Ready to start Q1 baseline implementation whenever you want!
+
+> 可否挑1-2个数据给我简洁讲一下每一个field的数据都是做什么的，最后我们怎么给Q1作为输入，输出我们期待什么 
+
+⏺ Read(data/swebench/verified.jsonl)
+  ⎿  Error: File content (51057 tokens) exceeds maximum allowed tokens (25000). Please use offset and limit parameters to 
+     read specific portions of the file, or use the GrepTool to search for specific content.
+
+⏺ Bash(head -n 2 /Users/jeremy/Dropbox/cs224v-project/cs224v-research/agent-memory-lab-v3/data/swebench/verified.jsonl |
+      python3 -m json.tool)
+  ⎿  Error: Extra data: line 2 column 1 (char 4849)
+
+⏺ Bash(python3 -c "
+      import json…)
+  ⎿  Available fields:             
+       - FAIL_TO_PASS
+       - PASS_TO_PASS
+     … +47 lines (ctrl+o to expand)
+
+⏺ Bash(python3 -c "
+      import json…)
+  ⎿  ================================================================================
+     EXAMPLE 1: Simple Bug Fix Task
+     ================================================================================
+     … +27 lines (ctrl+o to expand)
+
+⏺ 完美！让我用这个简单例子给你讲解：
+
+  📋 示例任务解析
+
+  任务： django__django-11119
+
+  难度： < 15 min fix仓库： django/django
+
+  ---
+  每个Field的作用
+
+  1. instance_id (任务唯一标识符)
+
+  "django__django-11119"
+  - 作用: 唯一标识这个bug，格式: {repo}__{issue_number}
+  - Q1用途: 日志记录、结果跟踪
+
+  ---
+  2. repo (仓库名)
+
+  "django/django"
+  - 作用: 告诉你这是哪个开源项目
+  - Q1用途: Scope Guard可以用来判断项目规模（Django是大型项目，通常单个bug只改1-2个文件）
+
+  ---
+  3. difficulty (估计修复时间)
+
+  "<15 min fix"
+  - 作用: 人工标注的难度级别
+  - Q1用途: Scope Guard校准 - 简单任务修改>3个文件 = 红旗🚩
+
+  ---
+  4. problem_statement (问题描述 = GitHub Issue原文)
+
+  "Engine.render_to_string() should honor the autoescape attribute
+  Description: In Engine.render_to_string, a Context is created without
+  specifying the engine autoescape attribute..."
+  - 作用: 这就是你给Agent的任务描述
+  - Q1用途:
+    - Plan Guard - 解析出目标文件/函数 (这里是Engine.render_to_string)
+    - Test Guard - 识别需要测什么 (autoescape行为)
+
+  ---
+  5. FAIL_TO_PASS (必须修好的测试)
+
+  ["test_autoescape_off (template_tests.test_engine.RenderToStringTest)"]
+  - 作用: 这些测试当前失败，修复后必须通过
+  - Q1用途:
+    - Test Guard - 监控agent是否运行了这个测试
+    - Test Guard - 如果agent忽略这个测试 → drift警告
+    - 最终评估 - 修复成功的唯一标准
+
+  ---
+  6. PASS_TO_PASS (不能破坏的测试)
+
+  497个测试
+  - 作用: 这些测试当前通过，修复后必须保持通过 (防止regression)
+  - Q1用途:
+    - Test Guard - 如果agent的改动导致这些测试失败 → 严重drift
+    - Evidence Guard - agent应该至少采样运行一些
+
+  ---
+  7. patch (标准答案 = 人类的修复方案)
+
+  diff --git a/django/template/engine.py b/django/template/engine.py
+  --- a/django/template/engine.py
+  +++ b/django/template/engine.py
+  @@ -160,7 +160,7 @@ def render_to_string(self, template_name, context=None):
+           if isinstance(context, Context):
+               return t.render(context)
+           else:
+  -            return t.render(Context(context))
+  +            return t.render(Context(context, autoescape=self.autoescape))
+  - 作用: Ground truth - 人类工程师的实际修复
+  - ⚠️ 重要: 不能给Agent看！ 这是作弊答案
+  - Q1用途:
+    - 事后评估 Scope Precision/Recall
+        - 标准答案修改了 django/template/engine.py
+      - 如果agent改了3个文件 → Precision低
+      - 如果agent没改这个文件 → Recall = 0
+    - 分析drift原因 - agent为什么跑偏了
+
+  ---
+  8. base_commit (代码版本)
+
+  "d16bfe05a744909de4b27f5875fe0d4ed41ce607"
+  - 作用: 告诉你从哪个git commit开始修
+  - Q1用途: 设置环境时checkout到这个版本
+
+  ---
+  🎯 Q1如何使用这些数据
+
+  输入 (Input to Agent)
+
+  # 给Agent的信息（无标准答案！）
+  {
+      "task_id": "django__django-11119",
+      "repo": "django/django",
+      "commit": "d16bfe05a744909de4b27f5875fe0d4ed41ce607",
+      "problem": "Engine.render_to_string() should honor the autoescape...",
+      "tests_to_fix": ["test_autoescape_off (...)"],
+      "difficulty": "<15 min fix"  # Optional: 供动态策略使用
+  }
+
+  Q1 Four-Guard实时监控
+
+  # Scope Guard
+  if agent_modified_files > 3 and difficulty == "<15 min":
+      drift_score += 0.4  # 85.8%的简单任务只改1个文件
+
+  # Plan Guard  
+  expected_target = parse_target(problem_statement)  # "Engine.render_to_string"
+  if expected_target not in agent_plan:
+      drift_score += 0.3
+
+  # Test Guard
+  if "test_autoescape_off" not in agent_executed_tests:
+      drift_score += 0.2
+
+  # Evidence Guard
+  if agent_run_tests_count == 0:  # 完全没运行测试
+      drift_score += 0.1
+
+  期待输出 (Expected from Agent)
+
+  {
+      "modified_files": ["django/template/engine.py"],
+      "patch": "diff --git a/django/template/engine.py...",
+      "tests_run": ["test_autoescape_off"],
+      "tests_passed": True
+  }
+
+  Q1事后评估
+
+  # 1. 运行FAIL_TO_PASS测试
+  result = run_tests(agent_patch, FAIL_TO_PASS)
+  resolved = all(result)  # 必须全部通过
+
+  # 2. 运行PASS_TO_PASS测试（采样100个）
+  sample_tests = random.sample(PASS_TO_PASS, 100)
+  result = run_tests(agent_patch, sample_tests)
+  no_regression = all(result)  # 必须不破坏已有功能
+
+  # 3. Scope分析
+  gold_files = {"django/template/engine.py"}
+  agent_files = {"django/template/engine.py"}
+  precision = len(gold_files & agent_files) / len(agent_files)  # 1.0
+  recall = len(gold_files & agent_files) / len(gold_files)      # 1.0
+
+  # 4. 最终判断
+  success = resolved and no_regression
+
+  ---
+  📊 完整流程示意
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │ INPUT (不包含patch!)                                         │
+  │ - problem_statement: "Engine.render_to_string()应该..."    │
+  │ - FAIL_TO_PASS: ["test_autoescape_off"]                    │
+  │ - difficulty: "<15 min"                                     │
+  └─────────────────────────────────────────────────────────────┘
+                            ↓
+              ┌─────────────────────────────┐
+              │   Agent + Q1 Four-Guard     │
+              │   (实时监控drift)            │
+              └─────────────────────────────┘
+                            ↓
+  ┌─────────────────────────────────────────────────────────────┐
+  │ AGENT OUTPUT                                                 │
+  │ - modified: ["django/template/engine.py"]                   │
+  │ - patch: "...autoescape=self.autoescape..."                │
+  │ - drift_score: 0.1 (低drift)                                │
+  └─────────────────────────────────────────────────────────────┘
+                            ↓
+              ┌─────────────────────────────┐
+              │   Q1 Evaluation             │
+              │   (对比ground truth)        │
+              └─────────────────────────────┘
+                            ↓
+  ┌─────────────────────────────────────────────────────────────┐
+  │ METRICS                                                      │
+  │ ✅ Resolved: True (FAIL_TO_PASS全通过)                      │
+  │ ✅ No Regression: True (PASS_TO_PASS不破坏)                │
+  │ ✅ Scope Precision: 1.0 (改对了文件)                        │
+  │ ✅ Scope Recall: 1.0 (没漏关键文件)                         │
+  │ ✅ Drift Rate: 10% (低于15%阈值)                            │
+  └─────────────────────────────────────────────────────────────┘
+
+  关键点总结：
+  - problem_statement + FAIL_TO_PASS = Agent的任务
+  - patch = 禁止给Agent看，只用于事后评估
+  - PASS_TO_PASS = 防止破坏现有功能
+  - difficulty = Q1动态校准drift阈值的信号
+
+  清楚了吗？需要我再展开哪个部分？
+
+> 我还是有些不明白。其他的agent-ai工具拿这个dataset做测试的时候，都是input是什么，output是什么，ou
+tut和数据集的哪个field做比较？ 
+
+⏺ 好问题！让我给你讲清楚标准SWE-bench评估流程（所有AI工具都遵循这个）：
+
+  🎯 标准SWE-bench评估流程
+
+  INPUT (给AI Agent的)
+
+  {
+      "instance_id": "django__django-11119",
+      "repo": "django/django",
+      "base_commit": "d16bfe...",
+      "problem_statement": "Engine.render_to_string() should honor...",
+      # 注意：不给FAIL_TO_PASS/PASS_TO_PASS/patch！
+  }
+
+  关键: 只给问题描述，不告诉agent要运行哪些测试，更不给标准答案！
+
+  ---
+  OUTPUT (AI Agent生成的)
+
+  {
+      "patch": """diff --git a/django/template/engine.py
+  --- a/django/template/engine.py
+  +++ b/django/template/engine.py
+  @@ -163 +163 @@
+  -            return t.render(Context(context))
+  +            return t.render(Context(context, autoescape=self.autoescape))
+  """
+  }
+
+  就是一个patch！ Agent的唯一任务是生成代码修改。
+
+  ---
+  EVALUATION (评估流程)
+
+  这是SWE-bench官方评估器做的事：
+
+  # Step 1: 准备环境
+  checkout(repo, base_commit)
+  install_dependencies(repo)
+
+  # Step 2: 应用agent生成的patch
+  apply_patch(agent_patch)  # 把agent的改动应用到代码库
+
+  # Step 3: 运行FAIL_TO_PASS测试（必须从失败变成功）
+  fail_to_pass_results = run_tests(FAIL_TO_PASS)
+  # ["test_autoescape_off"] -> PASS ✅
+
+  # Step 4: 运行PASS_TO_PASS测试（必须保持通过）
+  pass_to_pass_results = run_tests(PASS_TO_PASS)
+  # [497个测试] -> 全部PASS ✅
+
+  # Step 5: 判断resolved
+  resolved = (
+      all(fail_to_pass_results) and   # FAIL_TO_PASS全通过
+      all(pass_to_pass_results)        # PASS_TO_PASS不破坏
+  )
+
+  ---
+  🔍 与哪个Field比较？
+
+  关键理解：不是字符串比较patch！
+
+  # ❌ 错误理解（很多人的误解）
+  if agent_patch == ground_truth_patch:
+      success = True
+
+  # ✅ 正确理解
+  # 通过运行测试来判断功能是否正确
+  # 因为同一个bug可能有多种正确修复方式！
+
+  对比关系表
+
+  | Agent Output  | 数据集Field             | 比较方式               |
+  |---------------|----------------------|--------------------|
+  | patch         | 不直接比较                | 应用patch后运行测试       |
+  | 应用patch后的测试结果 | FAIL_TO_PASS         | 这些测试必须从FAIL变PASS   |
+  | 应用patch后的测试结果 | PASS_TO_PASS         | 这些测试必须保持PASS       |
+  | (可选分析)        | patch (ground truth) | 事后分析：为什么agent的方案不同 |
+
+  ---
+  📊 实际例子：3种不同的正确patch
+
+  假设这个Django任务有多种修复方式：
+
+  Ground Truth Patch (数据集里的)
+
+  # 方案1: 在Context初始化时传参
+  return t.render(Context(context, autoescape=self.autoescape))
+
+  Agent Patch 1 (也正确)
+
+  # 方案2: 先创建Context，再设置属性
+  ctx = Context(context)
+  ctx.autoescape = self.autoescape
+  return t.render(ctx)
+
+  Agent Patch 2 (也正确)
+
+  # 方案3: 直接修改Context类的默认行为
+  # ... (更复杂的重构)
+
+  评估结果：全部算成功！ 因为都能让：
+  - test_autoescape_off 从FAIL变PASS ✅
+  - 497个PASS_TO_PASS保持通过 ✅
+
+  ---
+  🔧 SWE-bench官方评估代码示意
+
+  def evaluate_instance(instance, agent_patch):
+      """SWE-bench官方评估逻辑"""
+
+      # 1. 环境准备
+      env = setup_environment(
+          repo=instance['repo'],
+          commit=instance['base_commit']
+      )
+
+      # 2. 应用agent的patch
+      env.apply_patch(agent_patch)
+
+      # 3. 解析测试列表（从JSON字符串）
+      fail_to_pass = json.loads(instance['FAIL_TO_PASS'])
+      pass_to_pass = json.loads(instance['PASS_TO_PASS'])
+
+      # 4. 运行测试
+      f2p_results = env.run_tests(fail_to_pass)
+      p2p_results = env.run_tests(pass_to_pass)
+
+      # 5. 判断resolved
+      resolved = (
+          all(test.status == 'PASSED' for test in f2p_results) and
+          all(test.status == 'PASSED' for test in p2p_results)
+      )
+
+      return {
+          'instance_id': instance['instance_id'],
+          'resolved': resolved,
+          'f2p_success_rate': sum(t.passed for t in f2p_results) / len(f2p_results),
+          'p2p_success_rate': sum(t.passed for t in p2p_results) / len(p2p_results),
+      }
+
+  ---
+  🎯 为什么这样设计？
+
+  1. 允许多种正确解法 - 不限制agent的创造性
+  2. 测试是真理 - 只要功能对，代码怎么写都行
+  3. 防止过拟合 - agent不能通过"记住标准答案"来作弊
+  4. 贴近真实工作 - 真实开发中也是用测试验证，而非比较diff
+
+  ---
+  🔬 其他AI工具的实际使用
+
+  SWE-agent (Princeton)
+
+  # Input
+  task = {
+      "problem": instance['problem_statement'],
+      "repo": instance['repo'],
+  }
+
+  # Output
+  patch = agent.solve(task)
+
+  # Evaluation (用官方评估器)
+  result = swebench_evaluate(instance, patch)
+  # -> {'resolved': True/False}
+
+  AutoCodeRover (National University of Singapore)
+
+  # Input
+  input = {
+      "issue": instance['problem_statement'],
+      "repo_path": clone_repo(instance['repo'], instance['base_commit'])
+  }
+
+  # Output
+  solution = autocoder.generate_patch(input)
+
+  # Evaluation (同样用测试)
+  resolved = run_swebench_tests(instance, solution)
+
+  Devin (Cognition AI)
+
+  - Input: problem_statement
+  - Output: 完整的git commit (包含patch)
+  - Evaluation: 测试通过率
+
+  所有工具都一样: 输入问题 → 输出patch → 用测试验证
+
+  ---
+  🎯 对你的Q1的启示
+
+  你的Q1 Four-Guard系统：
+
+  实时监控部分
+
+  # 监控agent生成patch的过程
+  # 不需要ground truth，只需要：
+  - problem_statement (解析目标)
+  - difficulty (校准阈值)
+  - agent的实时行为（改了哪些文件、运行了什么）
+
+  事后评估部分
+
+  # 1. 功能正确性（标准SWE-bench评估）
+  resolved = evaluate_with_tests(instance, agent_patch)
+
+  # 2. Scope分析（你的额外分析）
+  gold_files = extract_files_from_patch(instance['patch'])
+  agent_files = extract_files_from_patch(agent_patch)
+  scope_precision = ...  # 只用于分析drift原因
+
+  # 3. Drift分析
+  if resolved and low_drift:
+      # 成功 + 过程也好
+  elif resolved and high_drift:
+      # 成功但过程曲折（你的研究重点！）
+  elif not resolved:
+      # 失败
+
+  ---
+  总结
+
+  | 项目                   | 内容                                                |
+  |----------------------|---------------------------------------------------|
+  | Input                | problem_statement + repo + base_commit            |
+  | Output               | patch (agent生成的代码修改)                              |
+  | 比较对象                 | 不直接比较，而是应用patch后运行 FAIL_TO_PASS 和 PASS_TO_PASS 测试 |
+  | 成功标准                 | FAIL_TO_PASS全通过 AND PASS_TO_PASS全通过               |
+  | ground truth patch用途 | 仅用于事后分析，不用于评估正确性                                  |
+
+  核心: SWE-bench是test-based evaluation，不是patch-based comparison！
+
+  清楚了吗？
+
+● How is Claude doing this session? (optional)
+  1: Bad    2: Fine   3: Good   0: Dismiss
+
+⏺ 完成！我创建了完整的Q1 End-to-End工作流文档：Q1_END_TO_END_WORKFLOW.md
+
+  📋 文档包含的内容
+
+  1. 数据加载与解析 - 回答你的问题 "从verified.jsonl第i行取数据"
+
+  - 如何加载单个任务
+  - 如何parse成结构化格式（SWEBenchTask类）
+
+  2. 数据字段三分类 - 回答 "哪些给Q1，哪些对比，哪些无用"
+
+  完整分类表：
+  - ✅ Part A (给Agent): problem_statement, repo, base_commit
+  - ✅ Part B (给Q1监控): difficulty, problem_statement, FAIL_TO_PASS, PASS_TO_PASS
+  - ✅ Part C (评估对比): patch (ground truth), FAIL_TO_PASS/PASS_TO_PASS (运行测试)
+
+  3. Q1完整执行流程
+
+  - 环境准备 → Four-Guard初始化 → Agent执行 → 实时监控 → 事后评估
+
+  4. Four-Guard详细实现
+
+  每个guard的具体检查逻辑（完全符合你的proposal v2）：
+  - Scope Guard (0.4): 文件数 + expected_scope检查
+  - Plan Guard (0.3): Phase规则 + action顺序
+  - Test Guard (0.2): FAIL_TO_PASS覆盖检查
+  - Evidence Guard (0.1): LLM判断action依据
+
+  5. Drift Score计算 - 回答 "如何得到drift score"
+
+  drift_score = 0.4×scope + 0.3×plan + 0.2×test + 0.1×evidence
+
+  决策：
+  • < 0.5:  ✅ OK (允许)
+  • 0.5-0.8: ⚠️ WARN (警告但允许)
+  • ≥ 0.8:  🚫 ROLLBACK (建议回滚)
+
+  6. 事后评估 - 回答 "如何与source of truth对比"
+
+  两种对比：
+  1. 功能正确性 (标准SWE-bench): 运行FAIL_TO_PASS和PASS_TO_PASS测试
+  2. Scope分析 (Q1创新): 对比agent_patch和ground_truth_patch的文件集合
+    - Precision: agent改对的比例
+    - Recall: ground truth被覆盖的比例
+
+  7. LLM使用点 - 回答 "哪里用LLM"
+
+  3个调用点：
+  1. Parse Scope (初始化): GPT-4o解析预期修改范围 (~$0.01/任务)
+  2. Parse Plan (初始化): GPT-4o解析预期步骤 (~$0.01/任务)
+  3. Evidence Check (每次edit): GPT-4o-mini判断action依据 (~$0.001/action)
+
+  成本: 500任务约$12.5
+
+  8. 完整流程图
+
+  超详细的ASCII流程图，展示：
+  - Step 1-7: 从数据加载到最终结果
+  - 每个步骤的输入输出
+  - LLM调用位置
+  - Four-Guard检查细节
+  - Drift Score计算示例
+
+  🎯 关键洞察（回答你的理解）
+
+  你的理解基本正确，我在文档中补充完善了：
+
+  | 你的理解                  | 文档澄清/补充                                                         |
+  |-----------------------|-----------------------------------------------------------------|
+  | ✅ 从verified.jsonl取第i行 | 正确，文档提供了代码示例                                                    |
+  | ✅ Parse成清晰格式          | 正确，增加了SWEBenchTask类定义                                           |
+  | ✅ 字段三分类               | 正确，增加了完整分类表                                                     |
+  | ✅ 四个守卫检测drift         | 正确，增加了每个guard的详细逻辑                                              |
+  | ✅ 得到drift score数值     | 正确，增加了计算公式和实例                                                   |
+  | ❓ 需要与原数据对比            | 澄清: 两种对比 - (1)功能正确性通过运行测试，不是字符串比较patch！(2) Scope分析才对比patch的文件集合 |
+
+  📊 核心区别：SWE-bench评估不是"字符串比较"
+
+  很多人的误解：
+  # ❌ 错误
+  if agent_patch == ground_truth_patch:
+      success = True
+
+  正确方式（文档详细说明）：
+  # ✅ 正确
+  apply_patch(agent_patch)
+  run_tests(FAIL_TO_PASS)  # 必须通过
+  run_tests(PASS_TO_PASS)  # 必须不破坏
+  → 这才是success标准
+
+  原因：同一个bug可能有10种正确修复方式，只要测试通过就算对！
+
+  ---
+  文档已准备好，可以作为Week 1实现的技术规格书！需要我clarify哪个部分吗？
+
+
+
+  我的理解： "resolved = FAIL_TO_PASS 全过 且 PASS_TO_PASS 全过。" 这个怎么得到？SWE bench有现成的代码吗、官方提供评测器、他们的要求如何？我不太明白。简述这部分。
+
