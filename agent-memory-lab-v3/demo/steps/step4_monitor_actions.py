@@ -80,28 +80,31 @@ class ActionMonitor:
         }
 
     def _check_scope(self, action: Action) -> float:
-        """Scope Guard检查"""
+        """
+        Scope Guard检查（基于规则，不需要LLM）
+
+        核心规则：基于difficulty限制文件数
+        - 数据支持：85.8%的SWE-bench任务只修改1个文件
+        - <15min: 最多2个文件
+        - 15min-1h: 最多3个文件
+        - 1-4h: 最多5个文件
+        """
         if action.action_type != "edit_file":
             return 0.0
 
         # 更新已修改文件
         self.guard.modified_files.add(action.file_path)
 
-        # 检查1: 文件数是否超过限制
-        if len(self.guard.modified_files) > self.guard.scope_file_limit:
-            return 1.0  # 严重违规
+        # 唯一检查：文件数是否超过difficulty阈值
+        num_files = len(self.guard.modified_files)
+        limit = self.guard.scope_file_limit
 
-        # 检查2: 是否在expected_scope内（如果有的话）
-        if self.guard.expected_scope:
-            # 简化版：检查文件路径是否匹配
-            in_scope = any(
-                expected in action.file_path or action.file_path in expected
-                for expected in self.guard.expected_scope
-            )
-            if not in_scope:
-                return 0.7  # 中等违规
+        if num_files > limit:
+            # 超出越多，violation越高
+            excess = num_files - limit
+            return min(1.0, 0.5 + 0.2 * excess)  # 0.5, 0.7, 0.9, 1.0...
 
-        return 0.0  # 无违规
+        return 0.0  # 在限制内
 
     def _check_plan(self, action: Action) -> float:
         """Plan Guard检查"""

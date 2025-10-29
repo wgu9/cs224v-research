@@ -40,17 +40,24 @@ class MockAgent:
 
     注意：这是演示用的简化版agent
     实际Q1会使用真实agent（SWE-agent或自定义agent）
+
+    ✨ NEW: 支持Q1监控和ROLLBACK控制
     """
 
-    def __init__(self, task_description: str, repo: str):
+    def __init__(self, task_description: str, repo: str, monitor=None):
         self.task_description = task_description
         self.repo = repo
         self.actions: List[Action] = []
         self.current_patch = ""
+        self.monitor = monitor  # Q1 Monitor（可选）
+        self.rollback_triggered = False
 
     def execute(self) -> Dict[str, Any]:
         """
         执行任务，返回结果
+
+        如果接入了Q1 Monitor，会在每个action前检查drift
+        如果drift >= rollback阈值，停止执行
 
         Returns:
             包含patch和actions的字典
@@ -101,6 +108,20 @@ class MockAgent:
 
         return result
 
+    def _check_with_monitor(self, action: Action) -> bool:
+        """
+        用Q1 Monitor检查action
+
+        Returns:
+            True if should continue, False if should stop
+        """
+        if not self.monitor:
+            return True  # 没有monitor，继续执行
+
+        # 这里需要导入ActionMonitor来检查
+        # 为了简化，我们直接检查monitor的状态
+        return True  # 暂时always继续，实际会在step4集成
+
     def _action_read_file(self, file_path: str):
         """读取文件"""
         action = Action(
@@ -108,6 +129,11 @@ class MockAgent:
             file_path=file_path,
             result="File content read successfully"
         )
+
+        # ✨ NEW: Q1监控检查
+        if not self._check_with_monitor(action):
+            return
+
         self.actions.append(action)
         print(f"   {len(self.actions)}. {action}")
 
@@ -119,6 +145,11 @@ class MockAgent:
             content=description,
             result="File edited successfully"
         )
+
+        # ✨ NEW: Q1监控检查
+        if not self._check_with_monitor(action):
+            return
+
         self.actions.append(action)
         print(f"   {len(self.actions)}. {action}")
 
@@ -129,6 +160,11 @@ class MockAgent:
             test_name=test_name,
             result="Test passed"
         )
+
+        # ✨ NEW: Q1监控检查
+        if not self._check_with_monitor(action):
+            return
+
         self.actions.append(action)
         print(f"   {len(self.actions)}. {action}")
 
@@ -138,6 +174,11 @@ class MockAgent:
             action_type="submit",
             result="Submitted"
         )
+
+        # ✨ NEW: Q1监控检查
+        if not self._check_with_monitor(action):
+            return
+
         self.actions.append(action)
         print(f"   {len(self.actions)}. {action}")
 

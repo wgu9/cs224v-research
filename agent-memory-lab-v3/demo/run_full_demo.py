@@ -4,11 +4,9 @@
 """
 
 from pathlib import Path
-from step1_load_data import load_task
-from step2_init_guards import FourGuardMonitor
-from step3_mock_agent import MockAgent
-from step4_monitor_actions import ActionMonitor
-from step5_evaluate import evaluate_scope, evaluate_resolved_mock
+from steps import load_task, FourGuardMonitor, MockAgent, ActionMonitor
+from steps import evaluate_scope, evaluate_resolved_mock
+from utils import get_default_config, ExperimentLogger
 
 
 def print_header(title: str):
@@ -30,6 +28,21 @@ def main():
     print("   Step 5-6: 事后评估 (与Ground Truth对比)")
 
     input("\n按Enter继续...")
+
+    # ✨ NEW: Initialize config and logger
+    config = get_default_config()
+    logger = ExperimentLogger(
+        output_dir=Path("logs/full_demo"),
+        experiment_name="q1_full_demo"
+    )
+    logger.log_config({
+        'weights': config.weights,
+        'thresholds': config.thresholds,
+        'scope_file_limits': config.scope_file_limits,
+        'mode': config.mode,
+        'seed': config.seed,
+    })
+    print(f"\n✅ Config and logger initialized")
 
     # ========================================
     # Step 1: 数据加载与解析
@@ -107,6 +120,13 @@ def main():
         monitor_result = monitor.monitor_action(action, idx)
         monitoring_results.append(monitor_result)
 
+        # ✨ NEW: Log action and guard decision
+        logger.log_action(task.instance_id, idx, {
+            'action_type': action.action_type,
+            'file_path': getattr(action, 'file_path', ''),
+        })
+        logger.log_guard_decision(task.instance_id, idx, monitor_result)
+
     # 汇总
     total_actions = len(monitoring_results)
     drift_actions = sum(1 for r in monitoring_results if r['drift_score'] >= 0.5)
@@ -144,6 +164,21 @@ def main():
     print(f"   Scope Precision: {scope_result['scope_precision']:.2f} {'✅' if scope_result['scope_precision'] >= 0.8 else '⚠️'}")
     print(f"   Scope Recall: {scope_result['scope_recall']:.2f} {'✅' if scope_result['scope_recall'] >= 0.8 else '⚠️'}")
 
+    # ✨ NEW: Log task result
+    logger.log_task_result(
+        task_id=task.instance_id,
+        result={
+            'resolved': resolved_result['resolved'],
+            'scope_precision': scope_result['scope_precision'],
+            'scope_recall': scope_result['scope_recall'],
+        },
+        drift_metrics={
+            'drift_rate': drift_rate,
+            'num_actions': total_actions,
+            'num_drift_actions': drift_actions,
+        }
+    )
+
     # ========================================
     # 最终结果
     # ========================================
@@ -171,6 +206,18 @@ def main():
     print("\n" + "=" * 80)
     print("✅ Q1 End-to-End Demo 完成！")
     print("=" * 80)
+
+    # ✨ NEW: Print logger summary
+    summary = logger.get_summary()
+    print(f"\n📊 Experiment Summary:")
+    print(f"   Total tasks: {summary.get('total_tasks', 0)}")
+    print(f"   Resolve rate: {summary.get('resolve_rate', 0.0):.1%}")
+    print(f"   Avg drift rate: {summary.get('avg_drift_rate', 0.0):.1%}")
+    print(f"\n📝 Logs saved to: {logger.output_dir}")
+    print(f"   - events.jsonl (actions)")
+    print(f"   - guards.jsonl (guard decisions)")
+    print(f"   - results.jsonl (task results)")
+    print(f"   - run_meta.json (config)")
 
     print("\n💡 下一步:")
     print("   Week 1, Day 1-2: 实现完整的数据pipeline和agent集成")

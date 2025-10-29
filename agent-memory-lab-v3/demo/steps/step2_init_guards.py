@@ -40,15 +40,7 @@ class FourGuardMonitor:
         self.pass_to_pass = part_b['pass_to_pass']
         self.repo = part_b['repo']
 
-        # 🤖 LLM调用点1: Parse Scope
-        print("\n🤖 LLM调用点1: Parse Scope")
-        self.expected_scope = self._parse_scope_with_llm(self.problem_statement)
-
-        # 🤖 LLM调用点2: Parse Plan
-        print("\n🤖 LLM调用点2: Parse Plan")
-        self.expected_plan = self._parse_plan_with_llm(self.problem_statement)
-
-        # 根据difficulty设置scope_file_limit
+        # 根据difficulty设置scope_file_limit（基于数据：85.8%只改1个文件）
         self.scope_file_limit = self.config.scope_file_limits.get(
             self.difficulty, 3  # 默认3个文件
         )
@@ -60,9 +52,8 @@ class FourGuardMonitor:
         self.action_history: List[Dict[str, Any]] = []
 
         print(f"\n✅ Four-Guard Monitor initialized")
-        print(f"   Scope file limit: {self.scope_file_limit} files")
-        print(f"   Expected scope: {self.expected_scope}")
-        print(f"   Expected plan: {self.expected_plan}")
+        print(f"   Scope file limit: {self.scope_file_limit} files (based on difficulty: {self.difficulty})")
+        print(f"   Mode: Rule-based monitoring (no LLM needed)")
 
     def _default_config(self) -> GuardConfig:
         """默认配置（来自proposal v2）"""
@@ -87,87 +78,6 @@ class FourGuardMonitor:
             }
         )
 
-    def _parse_scope_with_llm(self, problem_statement: str) -> Set[str]:
-        """
-        🤖 LLM调用点1: 使用LLM解析预期修改范围
-
-        注意：这是简化版mock实现
-        实际实现需要调用OpenAI API或本地LLM
-
-        Args:
-            problem_statement: 问题描述
-
-        Returns:
-            预期修改的文件集合
-        """
-        # Mock implementation (实际需要调用GPT-4o)
-        # 这里使用简单的启发式规则模拟LLM输出
-
-        print(f"   Input: problem_statement (length={len(problem_statement)})")
-
-        # 简化版：从problem statement提取文件名
-        # 实际应该用LLM分析
-        files_mentioned = set()
-
-        # 查找常见的文件引用模式
-        import re
-        # 匹配 path/to/file.py 格式
-        file_patterns = re.findall(r'[\w/]+\.py', problem_statement)
-        files_mentioned.update(file_patterns)
-
-        # 如果没找到具体文件，根据repo推断可能的文件
-        if not files_mentioned:
-            # 基于repo的启发式推断
-            if 'django' in self.repo.lower():
-                files_mentioned.add('django/*/engine.py')  # 示例
-            elif 'astropy' in self.repo.lower():
-                files_mentioned.add('astropy/*/separable.py')  # 示例
-
-        print(f"   Output: {files_mentioned or {'(no specific files mentioned)'}}")
-        print(f"   Cost: ~$0.01/task (mock)")
-
-        return files_mentioned
-
-    def _parse_plan_with_llm(self, problem_statement: str) -> Dict[str, Any]:
-        """
-        🤖 LLM调用点2: 使用LLM解析预期执行计划
-
-        注意：这是简化版mock实现
-        实际实现需要调用OpenAI API或本地LLM
-
-        Args:
-            problem_statement: 问题描述
-
-        Returns:
-            预期的执行计划（目标函数/类、关键文件等）
-        """
-        # Mock implementation (实际需要调用GPT-4o)
-
-        print(f"   Input: problem_statement (length={len(problem_statement)})")
-
-        # 简化版：提取关键词
-        import re
-
-        # 查找函数名、类名
-        target = None
-        if 'render_to_string' in problem_statement:
-            target = 'render_to_string'
-        elif 'separability_matrix' in problem_statement:
-            target = 'separability_matrix'
-        else:
-            # 查找首个大写开头的词（可能是类名）
-            matches = re.findall(r'\b[A-Z][a-zA-Z]+\b', problem_statement)
-            target = matches[0] if matches else 'unknown'
-
-        plan = {
-            'target': target,
-            'key_files': list(self.expected_scope) if self.expected_scope else [],
-        }
-
-        print(f"   Output: {plan}")
-        print(f"   Cost: ~$0.01/task (mock)")
-
-        return plan
 
     def get_summary(self) -> Dict[str, Any]:
         """获取监控器状态摘要"""
@@ -175,10 +85,9 @@ class FourGuardMonitor:
             'task_id': self.task.instance_id,
             'difficulty': self.difficulty,
             'scope_file_limit': self.scope_file_limit,
-            'expected_scope': list(self.expected_scope),
-            'expected_target': self.expected_plan.get('target'),
             'weights': self.config.weights,
             'thresholds': self.config.thresholds,
+            'mode': 'rule-based',
         }
 
 
