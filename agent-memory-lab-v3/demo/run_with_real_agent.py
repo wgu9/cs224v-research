@@ -1,4 +1,6 @@
 """
+DEPRECATED: 建议改用 generate_predictions.py / batch_generate_predictions.py（短期仍可用作快速连通性自检）
+
 完整测试：使用真实Agent的Q1流程
 测试"1行走通" - 用SimpleBedrockAgent替换MockAgent
 """

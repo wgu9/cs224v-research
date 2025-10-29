@@ -5,8 +5,8 @@ Step 1: 数据加载与解析
 
 import json
 from pathlib import Path
-from dataclasses import dataclass
-from typing import List, Set, Dict, Any
+from dataclasses import dataclass, asdict
+from typing import List, Dict, Any
 
 
 @dataclass
@@ -84,7 +84,7 @@ def load_task(data_file: Path, task_index: int = 0) -> SWEBenchTask:
     Returns:
         SWEBenchTask对象
     """
-    with open(data_file) as f:
+    with open(data_file, encoding='utf-8') as f:
         for idx, line in enumerate(f):
             if idx == task_index:
                 raw_task = json.loads(line)
@@ -93,20 +93,21 @@ def load_task(data_file: Path, task_index: int = 0) -> SWEBenchTask:
     raise ValueError(f"Task index {task_index} not found in {data_file}")
 
 
-def main():
+def main(task_index: int = 0):
     """演示数据加载"""
     # 数据文件路径
-    DATA_FILE = Path(__file__).parent.parent / "data" / "swebench" / "verified.jsonl"
+    # 注意：本文件位于 demo/steps/ 下，这里需要向上三级到项目根
+    DATA_FILE = Path(__file__).parent.parent.parent / "data" / "swebench" / "verified.jsonl"
 
     print("=" * 80)
     print("Step 1: 数据加载与解析")
     print("=" * 80)
 
-    # 加载第1个任务（index=0）
+    # 加载指定索引的任务
     print(f"\n📂 Loading task from: {DATA_FILE}")
-    print(f"📍 Task index: 0 (第1个任务)")
+    print(f"📍 Task index: {task_index} (第{task_index + 1}个任务)")
 
-    task = load_task(DATA_FILE, task_index=0)
+    task = load_task(DATA_FILE, task_index=task_index)
 
     print(f"\n✅ Loaded task: {task.instance_id}")
     print(f"   Repository: {task.repo}")
@@ -153,6 +154,22 @@ def main():
     print("✅ Step 1 完成！数据已加载并分类")
     print("=" * 80)
 
+    # 输出 JSONL 文件到 logs/input_data/
+    output_dir = Path(__file__).parent.parent / "logs" / "input_data"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 生成文件名：input_data_{task_index}_{instance_id}.jsonl
+    output_file = output_dir / f"input_data_{task_index}_{task.instance_id}.jsonl"
+    
+    # 将任务数据转换为字典并写入 JSONL（标准格式：每行一个 JSON 对象）
+    task_dict = asdict(task)
+    with open(output_file, 'w', encoding='utf-8') as f:
+        # JSONL 格式：每行一个 JSON 对象（无缩进）
+        json_str = json.dumps(task_dict, ensure_ascii=False)
+        f.write(json_str + '\n')
+    
+    print(f"\n💾 数据已保存到: {output_file}")
+    
     return task
 
 

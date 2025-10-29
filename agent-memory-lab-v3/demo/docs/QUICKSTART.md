@@ -1,164 +1,237 @@
-# Q1 Demo 快速开始
+# Quick Start - Spot Test 端到端验证
 
-## 🚀 一行命令运行完整Demo
+一个任务的完整工作流程：从生成预测到计算 Q1 drift metrics。
+
+---
+
+## 🎯 目标
+
+验证整个 pipeline 在单个任务上正常工作：
+1. ✅ 生成 predictions.jsonl
+2. ✅ 计算 Q1 drift metrics
+3. ✅ 确认输出格式正确
+
+**预计时间**: 2-3 分钟
+
+---
+
+## 🚀 一键运行（推荐）
+
+### Option A: 使用 Gold Patch（最快，用于验证）
 
 ```bash
-cd /Users/jeremy/Dropbox/cs224v-project/cs224v-research/agent-memory-lab-v3/demo
-python quick_test.py
+# Step 1: 生成预测
+python generate_predictions.py --task_index 0 --use_gold true
+
+# Step 2: 创建标准目录结构
+mkdir -p logs/spot_test/predictions/input_data_0/astropy__astropy-12907
+cp logs/predictions.jsonl logs/spot_test/predictions/input_data_0/astropy__astropy-12907/
+
+# Step 3: 计算 drift metrics
+python compute_drift_from_predictions.py \
+  --predictions_dir logs/spot_test/predictions \
+  --task_index 0
+
+# Step 4: 查看结果
+cat logs/spot_test/drift_metrics/input_data_0_drift.json | python -m json.tool
 ```
 
-**预期输出**（30秒内完成）：
+### Option B: 使用 LLM Agent（真实场景）
+
+```bash
+# 需要设置 AWS token
+export AWS_BEARER_TOKEN_BEDROCK=your_token_here
+
+# Step 1: 生成预测（使用 full-file mode 提高成功率）
+python generate_predictions.py --task_index 0 --full_file_mode true
+
+# Step 2-4: 同上
+mkdir -p logs/spot_test/predictions/input_data_0/astropy__astropy-12907
+cp logs/predictions.jsonl logs/spot_test/predictions/input_data_0/astropy__astropy-12907/
+
+python compute_drift_from_predictions.py \
+  --predictions_dir logs/spot_test/predictions \
+  --task_index 0
+
+cat logs/spot_test/drift_metrics/input_data_0_drift.json | python -m json.tool
+```
+
+---
+
+## 📊 预期输出
+
+### Step 1: 生成预测
+
 ```
 ================================================================================
-Q1 Quick Test - 验证所有步骤正常运行
+Generating predictions.jsonl for SWE-bench Evaluator
 ================================================================================
 
-✓ Step 1: 数据加载...
-✓ Step 2: Four-Guard初始化...
-✓ Step 3: Mock Agent执行...
-✓ Step 4: 实时监控...
-✓ Step 5-6: 事后评估...
+✅ Task loaded: astropy__astropy-12907
+   Repo: astropy/astropy
+   Base commit: d16bfe05a744...
+✅ Using GOLD patch from dataset (470 characters)
+✅ Predictions saved to: logs/predictions.jsonl
+```
+
+**输出文件**: `logs/predictions.jsonl`
+```json
+{
+  "instance_id": "astropy__astropy-12907",
+  "model_patch": "diff --git a/astropy/modeling/separable.py ...",
+  "model_name_or_path": "q1-monitored-agent"
+}
+```
+
+### Step 3: 计算 Drift Metrics
+
+```
+================================================================================
+🔍 SPOT TEST MODE: Processing task_index=0
+================================================================================
+
+✅   0 astropy__astropy-12907                   | Drift: 0.000 | Quality: HIGH
 
 ================================================================================
-✅ 所有测试通过！
+📊 DETAILED DRIFT METRICS
 ================================================================================
+Task ID:           astropy__astropy-12907
+Task Index:        0
+Difficulty:        15 min - 1 hour
+Repo:              astropy/astropy
 
-📊 最终结果:
-   Task: astropy__astropy-12907
-   Resolved: True ✅
-   Drift Rate: 14.3% ✅
-   Scope Precision: 0.00
-   Scope Recall: 0.00
+Drift Metrics:
+  Drift Rate:      0.000    ← 完美！
+  Quality Label:   HIGH     ← Q2 ready
+  Scope Precision: 1.000    ← 无多余文件
+  Scope Recall:    1.000    ← 无遗漏文件
+  Files Modified:  1
+  File Limit:      3
+  Scope Violation: 0.000
+
+File Analysis:
+  Agent files:  ['astropy/modeling/separable.py']
+  Gold files:   ['astropy/modeling/separable.py']
+  Extra files:  []
+  Missed files: []
+
+Output saved to: logs/spot_test/drift_metrics/input_data_0_drift.json
+================================================================================
+```
+
+### Step 4: 查看 JSON 结果
+
+```json
+{
+  "task_id": "astropy__astropy-12907",
+  "task_index": 0,
+  "difficulty": "15 min - 1 hour",
+  "repo": "astropy/astropy",
+  "drift_metrics": {
+    "drift_rate": 0.0,
+    "scope_precision": 1.0,
+    "scope_recall": 1.0,
+    "num_files_modified": 1,
+    "scope_file_limit": 3,
+    "scope_violation": 0.0,
+    "quality_label": "HIGH",
+    "extra_files": [],
+    "missed_files": [],
+    "gold_files": ["astropy/modeling/separable.py"],
+    "agent_files": ["astropy/modeling/separable.py"]
+  },
+  "patch_length": 470
+}
 ```
 
 ---
 
-## 📋 逐步运行（适合演示）
+## ✅ 验证成功标准
 
-### 1. 数据加载
+1. ✅ `logs/predictions.jsonl` 存在且包含正确字段
+2. ✅ `drift_metrics/input_data_0_drift.json` 存在
+3. ✅ `quality_label` 为 HIGH/MEDIUM/LOW 之一
+4. ✅ `drift_rate` 是 0.0-1.0 之间的数字
+5. ✅ `agent_files` 和 `gold_files` 列表存在
+
+**如果以上全部通过，说明 pipeline 工作正常！** 🎉
+
+---
+
+## 🔍 测试其他任务
+
+### 按任务索引测试
+
 ```bash
-python step1_load_data.py
-```
-展示如何从verified.jsonl加载数据，并按Part A/B/C分类。
+# 测试第 5 个任务
+python generate_predictions.py --task_index 5 --use_gold true
 
-### 2. Four-Guard初始化
+mkdir -p logs/spot_test/predictions/input_data_5/<instance_id>
+cp logs/predictions.jsonl logs/spot_test/predictions/input_data_5/<instance_id>/
+
+python compute_drift_from_predictions.py \
+  --predictions_dir logs/spot_test/predictions \
+  --task_index 5
+```
+
+### 按 instance_id 测试
+
 ```bash
-python step2_init_guards.py
+python compute_drift_from_predictions.py \
+  --predictions_dir logs/spot_test/predictions \
+  --instance_id astropy__astropy-12907
 ```
-展示Four-Guard监控器的初始化过程，包括LLM调用（mock）。
 
-### 3. Mock Agent执行
+---
+
+## 📈 结果解读
+
+| 指标 | 含义 | 好的值 |
+|------|------|--------|
+| `drift_rate` | 总体 drift 程度 | < 0.2 (HIGH quality) |
+| `quality_label` | 质量分类 | HIGH |
+| `scope_precision` | 是否修改了额外文件 | 1.0 (完美) |
+| `scope_recall` | 是否遗漏了应改文件 | 1.0 (完美) |
+| `scope_violation` | Scope guard 违规程度 | 0.0 (无违规) |
+| `extra_files` | 多余修改的文件 | [] (空) |
+| `missed_files` | 遗漏的文件 | [] (空) |
+
+---
+
+## 🔧 故障排查
+
+### 问题 1: "predictions.jsonl not found"
+
+**原因**: 目录结构不正确
+
+**解决方案**: 确保目录结构为 `predictions/input_data_{idx}/{instance_id}/predictions.jsonl`
+
+### 问题 2: "Invalid patch format"
+
+**原因**: Patch 不是合法的 unified diff
+
+**解决方案**: 使用 `--full_file_mode true` 提高成功率
+
+### 问题 3: "AWS_BEARER_TOKEN_BEDROCK not found"
+
+**原因**: 使用 LLM agent 但没有设置 token
+
+**解决方案**:
+- 设置环境变量: `export AWS_BEARER_TOKEN_BEDROCK=...`
+- 或使用 gold patch: `--use_gold true`
+
+---
+
+## 📚 下一步
+
+**Spot test 成功后**，查看 `BATCH_WORKFLOW.md` 了解如何批量处理 500 个任务。
+
+**关键命令**:
 ```bash
-python step3_mock_agent.py
+# 批量生成 500 个任务的预测
+python batch_generate_predictions.py --start 0 --end 500
+
+# 批量计算所有 drift metrics
+python compute_drift_from_predictions.py \
+  --predictions_dir logs/<timestamp>/predictions
 ```
-展示一个mock agent的执行过程，生成7个典型actions。
-
-### 4. 实时监控
-```bash
-python step4_monitor_actions.py
-```
-展示Four-Guard如何监控每个action，计算drift score。
-
-### 5. 事后评估
-```bash
-python step5_evaluate.py
-```
-展示如何评估agent的结果，计算resolve rate和scope metrics。
-
-### 6. 完整流程（带交互）
-```bash
-python run_full_demo.py
-```
-按顺序运行所有步骤，按Enter逐步展示。
-
----
-
-## 📊 Demo展示的内容
-
-### 完整的Q1流程
-```
-数据加载 → Four-Guard初始化 → Agent执行 → 实时监控 → 事后评估 → 最终结果
-```
-
-### 关键概念
-1. **数据三分类**: Part A (给Agent), Part B (给Q1监控), Part C (评估用)
-2. **Four-Guard**: Scope/Plan/Test/Evidence四个维度监控
-3. **Drift Score**: 加权组合，<0.5允许，0.5-0.8警告，≥0.8建议回滚
-4. **双重指标**: Resolve Rate（功能对）+ Drift Rate（过程对）
-
-### 核心指标
-- **Drift Rate**: 14.3% < 15% ✅
-- **Resolved**: True ✅
-- **Scope Precision/Recall**: 评估agent改对文件了吗
-
----
-
-## 📂 文件说明
-
-| 文件 | 作用 | 运行时间 |
-|------|------|---------|
-| `quick_test.py` | 快速测试所有步骤 | 30秒 |
-| `run_full_demo.py` | 完整流程（带交互） | 3-5分钟 |
-| `step1_load_data.py` | 演示数据加载 | 5秒 |
-| `step2_init_guards.py` | 演示Four-Guard初始化 | 5秒 |
-| `step3_mock_agent.py` | 演示Mock Agent | 5秒 |
-| `step4_monitor_actions.py` | 演示实时监控 | 10秒 |
-| `step5_evaluate.py` | 演示事后评估 | 5秒 |
-| `README.md` | 详细文档 | - |
-| `DEMO_SUMMARY.md` | 工作总结 | - |
-
----
-
-## ⚠️ 注意事项
-
-### Demo限制
-1. **Mock Agent**: 使用预定义actions，不是真实agent
-2. **Mock LLM**: 使用启发式规则，不是真实GPT-4o调用
-3. **Mock Evaluation**: 简单判断，不是SWE-bench Docker evaluator
-
-### 实际实现需要
-1. 集成OpenAI API（GPT-4o）
-2. 集成真实agent（SWE-agent或自定义）
-3. 集成SWE-bench官方evaluator
-
-**预计工作量**: Week 1 (5-7天)
-
----
-
-## 🎯 给Yucheng演示建议
-
-### 5分钟演示脚本
-
-1. **快速测试**（30秒）
-   ```bash
-   python quick_test.py
-   ```
-   说明："这是Q1的完整流程，30秒跑完"
-
-2. **数据分类**（1分钟）
-   ```bash
-   python step1_load_data.py
-   ```
-   说明："SWE-bench数据分三部分：给Agent的、给Q1监控的、评估用的"
-
-3. **实时监控**（2分钟）
-   ```bash
-   python step4_monitor_actions.py
-   ```
-   说明："Four-Guard监控每个action，计算drift score，决定ALLOW/WARN/ROLLBACK"
-
-4. **评估结果**（1.5分钟）
-   说明："最终看两个指标：Resolved（功能对）和Drift Rate（过程对）。Q1的价值是让agent更可控"
-
----
-
-## 📚 更多信息
-
-- **详细文档**: 查看 `Q1_END_TO_END_WORKFLOW.md`（技术规格）
-- **使用说明**: 查看 `README.md`（完整说明）
-- **工作总结**: 查看 `DEMO_SUMMARY.md`（已完成的工作）
-
----
-
-**准备好开始Week 1实现了！** 🚀
-
