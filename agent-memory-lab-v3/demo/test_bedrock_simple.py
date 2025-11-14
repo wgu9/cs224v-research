@@ -13,14 +13,23 @@ def test_simple_query(query: str):
     print("Bedrock API 简单测试")
     print("=" * 80)
 
-    # 检查 token
-    has_token = bool(os.getenv('AWS_BEARER_TOKEN_BEDROCK'))
-    print(f"\n✓ AWS Token 状态: {'已设置' if has_token else '未设置'}")
+    # 检查认证方式
+    has_bearer_token = bool(os.getenv('AWS_BEARER_TOKEN_BEDROCK'))
+    has_aws_keys = bool(os.getenv('AWS_ACCESS_KEY_ID') and os.getenv('AWS_SECRET_ACCESS_KEY'))
 
-    if not has_token:
-        print("❌ 缺少 AWS_BEARER_TOKEN_BEDROCK 环境变量")
-        print("请设置: export AWS_BEARER_TOKEN_BEDROCK=...")
-        return
+    print(f"\n认证方式检查:")
+    print(f"  Bearer Token: {'✓ 已设置' if has_bearer_token else '✗ 未设置'}")
+    print(f"  AWS Access Keys: {'✓ 已设置' if has_aws_keys else '✗ 未设置'}")
+    print(f"  AWS Profile: {os.getenv('AWS_PROFILE', 'default')}")
+    print(f"  AWS Region: {os.getenv('AWS_REGION', 'us-west-2')}")
+
+    if not has_bearer_token and not has_aws_keys:
+        print("\n⚠️  没有找到 AWS 认证配置")
+        print("请选择以下方式之一：")
+        print("  1. Bearer Token: export AWS_BEARER_TOKEN_BEDROCK=...")
+        print("  2. AWS Keys: export AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...")
+        print("  3. 或者确保 ~/.aws/credentials 文件已配置")
+        print("\n尝试使用默认 AWS credentials 文件继续...")
 
     # 模型配置
     model = os.getenv(
