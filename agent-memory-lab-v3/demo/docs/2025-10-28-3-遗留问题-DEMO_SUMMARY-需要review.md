@@ -1885,7 +1885,7 @@ Precision/Recall（解释“为什么成功/失败”，以及 Q1 起了多大�
   现在需要我开始写SimpleGPT4Agent的代码吗？
 
 > 好的 请继续吧。我们有bedrock api"export 
-AWS_BEARER_TOKEN_BEDROCK=ABSKQmVkcm9ja0FQSUtleS1lajlrLWF0LTMzOTcxMzAzOTY5MzpaYUZZTEZLN1VUVnZSSUVPNHU1c0hSejBlcS85S21pMTZBVmt6TG8vY0RWN1NDeGpFRU5GcjdMRGtyST0=
+AWS_BEARER_TOKEN_BEDROCK=x
 " 在zshell，也可以用它。openai的api在litellm定义了，对吗。你看着办 抓紧结束这部分 
 
 
